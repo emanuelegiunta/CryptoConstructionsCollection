@@ -1,0 +1,95 @@
+% !TeX spellcheck = en_GB
+% !TeX root = ccc_main.tex
+
+	%document class
+\ifBeamer
+	% Settings for Beamer
+	\documentclass{beamer}
+	\usetheme{Darmstadt}
+	
+	% Hide tables abstract ecc...
+	\TableOfContentsfalse
+	\Abstractfalse
+	\Anonymousfalse
+\else
+	% Settings for the actual paper
+	\ifFullVersion
+		\documentclass[11pt]{book}
+	\else
+		\documentclass{book}
+		\pagestyle{plain}
+	\fi
+\fi
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+	%math packages
+\usepackage{
+	amsmath,	amssymb,
+	amsfonts,	mathtools}
+
+	%graphic/floats packages
+\usepackage{
+	tikz, 		float,
+	placeins, 	graphicx,
+	graphics,	xcolor} 
+	
+	%text formatting
+\usepackage{
+	verbatim,
+	bm}
+
+	%other
+\usepackage{
+	breakcites,	enumerate,
+	array,		comment}
+
+	
+\usepackage[]{hyperref}
+%\hypersetup{
+%	colorlinks
+%	%allcolors=black
+%	%urlcolor=black
+%}
+
+	%cryptocode
+\usepackage[
+	lambda,			advantage,
+	operators,		sets,
+	adversary,		landau,
+	probability,	notions,
+	logic,			ff,
+	mm,				primitives,
+	events,			complexity,
+	asymptotics,	keys
+	]{cryptocode}
+	
+	% Define metadata commands
+\newcommand{\myauthor}[1]{
+	\ifAnonymous
+		\author{}
+	\else
+		\author{#1}
+	\fi}
+
+\newcommand{\myinstitute}[1]{
+	\ifAnonymous
+		\institute{}
+	\else
+		\institute{#1}
+	\fi}
+
+
+%==============================================================================%
+% COUNTERS
+
+% set how far in the sub[n]subsection the Table of Contents will go
+\ifTableOfContents
+	\setcounter{tocdepth}{2}
+\fi
+
+% set the level in which section numbering occurs
+\setcounter{secnumdepth}{1}
+
+

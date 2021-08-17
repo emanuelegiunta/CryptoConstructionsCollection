@@ -1,0 +1,108 @@
+%!TeX root = ../../ccc_main.tex
+%!TeX spellcheck = en_GB
+
+\subsection{Boneh-Franklin IBE}
+
+In \cite{C:BonFra01} the first two construction of an IBE scheme in the random oracle model were presented. 
+\EG{revise - is this customary?}
+In the following let $e : \G_1 \times \G_2 \to \G_T$ be a pairing of prime order $q$ groups, $g_1, g_2, g_T$ their generators and $\ro : \{0,1\}^\ast \to \G_2$ the random oracle.
+
+\begin{figure}[htb]
+\centering
+\begin{pcarray}{lll}
+	\procedure[mode = text, linenumbering]{
+		$\cd{Setup}:$
+		}
+		{
+			$s \rgets \F_q, \quad h \rgets g_1^s$
+				\\
+			$\mpk \gets h, \quad \msk \gets s$
+				\\
+			Return $\mpk, \msk$
+		}
+	&
+	\procedure[mode = text, linenumbering]{
+		$\cd{KeyGen}(\cd{id}, \msk):$
+		}
+		{
+			$Q_\cd{id} \gets \ro(\cd{id}), \quad \sk_\cd{id} \gets Q_\cd{id}^s$
+				\\
+			Return $\sk_\cd{id}$
+		}
+	\\
+	\procedure[mode = text, linenumbering]{
+			$\cd{Enc}(m, \cd{id}, \mpk):$
+			}
+			{
+				$r \rgets \F_q, \quad Q_\cd{id} \gets \ro(\cd{id})$
+					\\
+				$c_0 \gets g_1^r, \quad c_1 \gets m \cdot e(h^r, Q_\cd{id})$
+					\\
+				Return $(c_0, c_1)$
+			}
+	&
+	\procedure[mode = text, linenumbering]{
+		$\cd{Dec}(c, \sk_\cd{id}, \mpk):$
+		}
+		{
+			Parse $c = (c_0, c_1)$
+				\\
+			$m \gets c_1 \cdot e(c_0, \sk_\cd{id})^{-1}$
+				\\
+			Return $m$
+		}
+\end{pcarray}
+\caption{First IBE scheme proposed in \cite{C:BonFra01}}
+\label{prot:BonFra01:first}
+\end{figure}
+
+This scheme is correct as $e(c_0, \sk_\cd{id}) = e(g_1^r, Q_\cd{id})^s = e(h^r, Q_\cd{id})$. Indistinguishability under chosen plaintext attack instead can be proven under the $\cd{BDH}$ assumption \EG{ref}.
+\begin{proposition}
+	\label{prop:BonFra01:first}
+	The scheme \ref{prot:BonFra01:first} is an $\cd{IND-CPA}$ Identity Based Encryption scheme under the $\cd{BDH}$ assumption in the Random Oracle Model.
+\end{proposition}
+Using the Fujisaki-Okamoto transform \cite{C:FujOka99} the above construction can be turned into an $\cd{IND-CCA}$ secure scheme. Even though originally this black box transformation was designed for simple asymmetric encryption schemes, it can be applied in this context as well. Given two independent random oracles $\ro[0] : \{0, 1\}^\ast \to \F_q$ and $\ro[1] : \{0, 1\}^\ast \to \{0, 1\}^\ell$ the encryption of an $\ell$ bits message is performed by returning
+\[
+	\cd{Enc}(\sigma, \cd{id}, \mpk; \ro[0](\sigma, m))
+		, \quad
+	\ro[1](\sigma) \oplus m
+\]
+where $\sigma \sim U(\G_T)$ and $\cd{Enc}(\sigma, \cd{id}, \mpk; r)$ denotes the encryption of $\sigma$ with randomness $r$.
+Decryption is carried out by extracting $\sigma$ from the first component using $\sk_\cd{id}$ and then $m$ by adding $\ro[1](\sigma)$ to the second component.
+Finally, if the first term does not equal the encryption of $\sigma$ using randomness $\ro[0](\sigma, m)$, that is a deterministic procedure, the decryption algorithm fails returning $\perp$. Otherwise it returns the message $m$.
+This modifications are all summarised in figure \ref{prot:BonFra01:second}.
+
+\begin{figure}[htb]
+\centering
+\begin{pcarray}{ll}
+	\procedure[mode = text, linenumbering]
+	{$\cd{Enc}^\ast(m, \cd{id}, \mpk)$}{
+		$\sigma \rgets \G_T, \quad c_1 \gets \ro[1](\sigma) \oplus m$
+			\\
+		$c_0 \gets \cd{Enc}(\sigma, \cd{id}, \mpk; \ro[0](\sigma, m))$
+			\\
+		Return $(c_0, c_1)$
+	}
+		&
+	\procedure[mode = text, linenumbering]
+	{$\cd{Dec}^\ast(c, \sk_\cd{id}, \mpk)$}{
+		Parse $c = c_0, c_1$
+			\\
+		$\sigma \gets \cd{Dec}(c_0, \sk_\cd{id}, \mpk)$
+			\\
+		$m \gets c_1 \oplus \ro[1](\sigma)$
+			\\
+		\textbf{If} $c_0 \neq \cd{Enc}(\sigma, \cd{id}, \mpk; \ro[0](\sigma, m))$:
+			\\
+		\t Return $\perp$
+			\\
+		\textbf{Else}: Return $m$
+	}
+\end{pcarray}
+\caption{Enhanced encryption and decryption procedure in \cite{C:BonFra01}}
+\label{prot:BonFra01:second}
+\end{figure}
+
+\begin{proposition}
+	The scheme $(\cd{Setup}, \cd{KeyGen}, \cd{Enc}^\ast, \cd{Dec}^\ast)$ detailed in Figures \ref{prot:BonFra01:first} and \ref{prot:BonFra01:second} is an $\cd{IND-CCA}$ IBE under the $\cd{BDH}$ assumption in the Random Oracle Model.
+\end{proposition}

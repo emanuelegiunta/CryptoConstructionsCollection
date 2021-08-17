@@ -1,0 +1,35 @@
+%!TeX spellcheck = en_GB
+
+	% Import Flags, Setting and Commands
+\input{ccc_flags.tex}
+\input{ccc_settings.tex}
+\input{ccc_commands.tex}
+\input{ccc_metadata.tex}
+
+
+\begin{document}
+
+\maketitle
+
+%% Table of Contents
+\ifTableOfContents 
+	\tableofcontents
+	\newpage
+\fi
+
+%% Main Body
+\chapter{Computational Assumptions}
+
+\chapter{Functional Encryption}
+	\section{Identity Based Encryption}
+	\input{chapters/FunEnc/BF01.tex}
+
+
+%% Bibliography
+\bibliographystyle{alpha}
+\bibliography{cryptobib/abbrev3,cryptobib/crypto,others}
+
+%% Appendix
+\appendix
+
+\end{document}
