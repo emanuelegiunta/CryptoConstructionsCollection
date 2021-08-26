@@ -10,7 +10,7 @@ In the following let $e : \G_1 \times \G_2 \to \G_T$ be a pairing of prime order
 \begin{figure}[htb]
 \centering
 \begin{pcarray}{lll}
-	\procedure[mode = text, linenumbering]{
+	\algorithm{
 		$\cd{Setup}:$
 		}
 		{
@@ -21,7 +21,7 @@ In the following let $e : \G_1 \times \G_2 \to \G_T$ be a pairing of prime order
 			Return $\mpk, \msk$
 		}
 	&
-	\procedure[mode = text, linenumbering]{
+	\algorithm{
 		$\cd{KeyGen}(\cd{id}, \msk):$
 		}
 		{
@@ -30,7 +30,7 @@ In the following let $e : \G_1 \times \G_2 \to \G_T$ be a pairing of prime order
 			Return $\sk_\cd{id}$
 		}
 	\\
-	\procedure[mode = text, linenumbering]{
+	\algorithm{
 			$\cd{Enc}(m, \cd{id}, \mpk):$
 			}
 			{
@@ -41,7 +41,7 @@ In the following let $e : \G_1 \times \G_2 \to \G_T$ be a pairing of prime order
 				Return $(c_0, c_1)$
 			}
 	&
-	\procedure[mode = text, linenumbering]{
+	\algorithm{
 		$\cd{Dec}(c, \sk_\cd{id}, \mpk):$
 		}
 		{

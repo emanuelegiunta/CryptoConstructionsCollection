@@ -31,8 +31,9 @@
 %==============================================================================%
 % ALGEBRA
 
-\newcommand*{\trs}{\top}								%transpose of a vector, matrix
+\newcommand*{\trs}{\top\hspace{-.1em}}					%transpose of a vector, matrix
 \newcommand*{\vc}[1]{\mathbf{#1}}						%vectors
+\newcommand{\gexp}[2]{\left[{#2}\right]_{#1}}			%group exponentiation
 \newcommand*{\Ker}{{\mathrm{Ker}}\,}					%kernell
 \renewcommand*{\Im}{{\mathrm{Im}}\,}					%image
 \renewcommand*{\ker}{\Ker}								%making \ker and \Ker synonims
@@ -97,6 +98,9 @@
 % random oracle
 \newcommand{\ro}[1][]{\mathcal{H}_{#1}}
 
+% ddh
+\newcommand{\ddh}[1][]{\cd{DDH}^{#1}}
+
 
 %==============================================================================%
 % ENVIRONMENTS
@@ -117,6 +121,25 @@
 \newtheorem{proposition}[theorem]{Proposition}
 \newtheorem{lemma}[theorem]{Lemma}
 \newtheorem{corollary}[theorem]{Corollary}
+
+\newtheorem{claim}{Claim}
+
+% claim proof
+\newenvironment{claimproof}[1]{
+	\begin{proof}[Proof of Claim #1]
+	% Remove the final QED symbol
+	\renewcommand{\qedsymbol}{}
+	}{
+	\end{proof}
+	}
+
+
+%==============================================================================%
+% PSEUDOCODE
+
+% for primitives and algorithms
+\createprocedurecommand{algorithm}{}{}{mode = text, linenumbering}
+
 
 
 %==============================================================================%

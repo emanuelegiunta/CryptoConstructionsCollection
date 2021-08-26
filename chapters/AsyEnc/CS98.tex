@@ -1,0 +1,291 @@
+%!TeX root = ../../ccc_main.tex
+%!TeX spellcheck = en_GB
+
+\subsection{Cramer-Shoup}
+
+The first asymmetric encryption scheme proven $\cd{IND-CCA2}$ secure in the plain model under standard assumptions, namely $\ddh$ and the existence of target collision-resistant hash functions, was the Cramer-Shoup cryptosystem \cite{C:CraSho98}. Later reformulations generalised their construction to Hash Proof System \cite{EC:CraSho02} which can be based on a broader class of decisional problems.
+The scheme is presented in Figure \ref{prot:CraSho98}. There $\gexp{}{x} = g^x$ with $g$ being the generator of a group $\G$ with prime order $q$ and $H : \{0,1\}^\ast \to \F_q^2$ denote a TCR \EG{ref} hash function such that any two distinct vector in its image are linearly independent.
+This last requirement is not restrictive since, if $h : \{0, 1\} \to \F_q^2$ is a TCR, then $H(x) \coloneqq (1, h(x))$ is a TCR with the above property.
+For simplicity in the scheme decryption we omit the hash function's key, implicitly sampled during the setup.
+
+\begin{figure}[htb]
+\centering
+\begin{pcarray}{lll}
+	\algorithm{
+	$\cd{Setup}:$
+	}
+	{
+		$\vc{w} \rgets \F_q^2, \quad \vc{x} \rgets \F_q^2, \quad A \rgets \F_q^{2,2}$
+			\\
+		$
+			\pk \gets \left(
+				\gexp{}{\vc{w}}
+					, \,
+				\gexp{}{\vc{w}^\trs \vc{x}}
+					, \,
+				\gexp{}{\vc{w}^\trs A}
+				\right), \quad
+			\sk \gets
+				(\vc{x}, \, A)
+		$
+			\\
+		Return $\pk, \sk$
+	}
+	\\
+	\algorithm{
+	$\cd{Enc}(M, \pk):$
+	}
+	{
+		$s \rgets \F_q$
+			\\
+		\label{step:CraSho98:enc:first_part}
+		$\vc{c}_0 \gets \gexp{}{s \vc{w}}
+			, \quad
+		c_1 \gets \gexp{}{s \vc{w}^\trs \vc{x}} \cdot M$
+			\\
+		\label{step:CraSho98:enc:second_part}
+		$\vc{v} \gets H(\vc{c}_0, c_1), \quad c_2 \gets \gexp{}{s \vc{w}^\trs A \vc{v}}$
+			\\
+		Return $c \gets (\vc{c}_0, c_1, c_2)$
+	}
+	\\
+	\algorithm{
+	$\cd{Dec}(c, \sk, \pk):$
+	}
+	{
+		Parse $c = (\vc{c}_0, c_1, c_2) \in \G^4$ and set $\vc{v} \gets H(\vc{c}_0, c_1)$
+			\\
+		\label{step:CraSho98:dec:test}
+		\textbf{If} $c_2 \neq \vc{c}_0^{A \vc{v}}$: Return $\perp$
+			\\
+		\label{step:CraSho98:dec:decrypytion_step}
+		Return $m \gets c_1 \cdot \vc{c}_0^{-\vc{x}}$	
+	}
+\end{pcarray}
+\caption{$\cd{IND-CCA2}$ secure scheme in \cite{C:CraSho98}}
+\label{prot:CraSho98}
+\end{figure}
+
+\begin{proposition}
+	\label{prop:CraSho98}
+	The scheme detailed in Figure \ref{prop:CraSho98} is $\cd{IND-CCA2}$ if $H$ is a TCR hash function and $\ddh$ holds in $\G$.
+\end{proposition}
+
+\begin{proof}[Proof of \ref{prop:CraSho98}]
+	We propose the same hybrid games sequence of the original paper, but in a different order to make the argument more linear to follow.
+	In the following $(\tilde{\vc{c}}_0, \tilde{c}_1, \tilde{c}_2)$ denotes the challenge ciphertext
+	
+	\paragraph{Hybrid Games}
+	\begin{itemize}
+	\item $\cd{G}_0$: The real game \EG{ref}.
+	
+	\item $\cd{G}_1$: The encryption oracle change $\cd{Enc}$ by setting $c_1 \gets \vc{c}_0^{\vc{x}} \cdot M$ and $c_2 \gets \vc{c}_0^{A \vc{v}}$.
+	
+	\item $\cd{G}_2$: The encryption oracle change $\cd{Enc}$ by sampling $\vc{c}_0 \rgets \G^2$.
+	
+	%\item $\cd{G}_3$: The decryption oracle change $\cd{Dec}$ by rejecting before line \ref{step:CraSho98:dec:test} if, after the challenger ciphertext has been requested, $(\vc{c}_0, c_1) \neq (\tilde{\vc{c}}_0, \tilde{c}_1)$ but $H(\vc{c}_0, c_1) = H(\tilde{\vc{c}}_0, \tilde{c}_1)$.
+	
+	\item $\cd{G}_3$: The decryption oracle change $\cd{Dec}$ by computing $\vc{w}^\perp$, $\vc{w}^\ast$ such that $\vc{w}^\trs \vc{w}^\perp = 0$, $\vc{w}^\trs \vc{w}^\ast = 1$ replacing the check on line \ref{step:CraSho98:dec:test} with
+	\[
+		\vc{c}_0^{\vc{w}^\perp} = 1
+			\quad \wedge \quad
+		(\vc{c}_0^{\vc{w}^\ast})^{\vc{w}^\trs A \vc{v}} = c_2
+	\]
+	and finally, replacing the step on line \ref{step:CraSho98:dec:decrypytion_step} with $m \rgets c_1 \cdot (\vc{c}_0^{\vc{w}^\ast})^{-\vc{w}^\trs \vc{x}}$.
+	
+	%\item $\cd{G}_5$: Change $\cd{Enc}$ by sampling $c_1 \rgets \G$.
+	\end{itemize}
+	
+\begin{claim}
+	\label{claim:CraSho98:G0-G1}
+	$\cd{G}_0$ and $\cd{G}_1$ are identically distributed.
+\end{claim}
+
+\begin{claim}
+	\label{claim:CraSho98:G1-G2}
+	For any $\ppt$ algorithm $\mathcal{A}$ that distinguishes $\cd{G}_1$ from $\cd{G}_2$, there exists $\mathcal{B}$ $\ppt$ that breaks $\ddh$ over $\G$ with the same advantage $\varepsilon_1$ of $\mathcal{A}$.
+\end{claim}
+
+\begin{claim}
+	\label{claim:CraSho98:G3 is hard}
+	In game $\cd{G}_3$, up to negligible probability $1/q$, $\tilde{c}_1 \sim U(\G)$ and is independent from other group elements sent by the challenger and the adversary's random coins
+\end{claim}	
+	
+\begin{claim}
+	\label{claim:CraSho98:TCR}
+	For any $\ppt$ algorithm $\mathcal{A}$ that in game $\cd{G}_3$ sends, after requesting the challenge ciphertext, a decryption query $(\vc{c}_0, c_1, c_2)$ such that $(\vc{c}_0, c_1) \neq (\tilde{\vc{c}}_0, \tilde{c}_1)$ but $H(\vc{c}_0, c_1) = H(\tilde{\vc{c}}_0, \tilde{c}_1)$ with probability $\varepsilon_2'$, there exists $\mathcal{C}$ that breaks the TCR of $H$ with probability $\varepsilon_2$ such that $\varepsilon_2' \leq \varepsilon_2 + q^{-1}$.
+\end{claim}
+	
+\begin{claim}
+	\label{claim:CraSho98:G2-G3}
+	For any $\ppt$ algorithm $\mathcal{A}$ that distinguishes $\cd{G}_2$ from $\cd{G}_3$, calling $Q$ a polynomial bound on the number of decryption queries requested by $\mathcal{A}$, then its advantage is smaller than $Q \cdot q^{-1}$.
+\end{claim}
+
+Observe that by Claim \ref{claim:CraSho98:G3 is hard} in $\cd{G}_3$ all messages sent are independent from the challenge bit $b$, meaning that the advantage of any adversary is $0$. Applying the claims we deduce that the advantage of any $\ppt$ adversary to win the $\cd{IND-CCA2}$ is smaller than $\varepsilon_1 + \varepsilon_2 + (Q + 1) \cdot q^{-1}$.
+
+\begin{claimproof}{\ref{claim:CraSho98:G0-G1}}
+	The first two games $\cd{G}_0, \cd{G}_1$ are identically distributed since
+	\begin{gather*}
+	c_1	
+		\; = \;
+	\gexp{}{s \cdot \vc{w}^\trs \vc{x}} \cdot M
+		\; = \;
+	\gexp{}{s \cdot \vc{w}}^{\vc{x}} \cdot M
+		\; = \;
+	\vc{c}_0^{\vc{x}} \cdot M
+		\\
+	c_2
+		\; = \;
+	\gexp{}{s \cdot \vc{w}^\trs A \vc{v}}
+		\; = \;
+	\gexp{}{s \cdot \vc{w}}^{A \vc{v}}
+		\; = \;
+	\vc{c}_0^{A \vc{v}}.
+	\end{gather*}
+\end{claimproof}
+
+\begin{claimproof}{\ref{claim:CraSho98:G1-G2}}
+	Algorithm $\mathcal{B}$ breaking $\ddh$ is detailed in figure \ref{prot:CraSho98:DDH_reduction}
+\begin{figure}[htb]
+\centering
+\algorithm{\textbf{Algorithm} $\mathcal{B}(\vc{g}, \vc{h})$}{
+	Sample $\vc{x} \rgets \F_q^2$, $A \rgets \F_q^{2, 2}$ and set
+	$\pk \gets \left( \vc{g}, \vc{g}^\vc{x}, \vc{g}^A \right), \; \sk \gets (\vc{x}, A)$
+		\\
+	Execute $\mathcal{A}(1^\secp, \pk)$
+		\\
+	When $\mathcal{A}$ request the decryption of $c$:
+		\\
+	\t Set $m \gets \cd{Dec}(c, \sk, \pk)$ and send $\mathcal{A} \gets m$
+		\\
+	When $\mathcal{A}$ request the encryption of $(M_0, M_1)$:
+		\\
+	\t Sample $b \rgets \{0, 1\}$; Set $\vc{c}_0 \gets \vc{h}, \; c_1 \gets \vc{c}_0^\vc{x} \cdot M_b$
+		\\
+	\t Set $\vc{v} \gets H(\vc{c}_0, c_1)$ and $c_2 \gets \vc{c}_0^{A \vc{v}}$; Send $\mathcal{A} \gets (\vc{c}_0, c_1, c_2)$
+		\\
+	When $\mathcal{A} \to b'$: Return $b'$.
+}
+\label{prot:CraSho98:DDH_reduction}
+\caption{Algorithm $\mathcal{B}$ reducing the indistinguishability of $\cd{G}_1$-$\cd{G}_2$ to $\ddh$}
+\end{figure}
+
+	In both game $\ddh[0]$ and $\ddh[1]$ there exists a random $\vc{w} \in \F_q^2$ such that $\vc{g} = \gexp{}{\vc{w}}$, which implies that the public key is computed correctly. In $\ddh[1]$, there exists $s \sim U(\F_q)$ such that $\vc{h} = \vc{g}^s = \gexp{}{s \vc{w}}$ which means that the challenge ciphertext is as in $\cd{G}_1$
+	\[
+		\vc{c}_0 = \gexp{}{s \vc{w}}
+			, \qquad
+		c_1 = \vc{c}_0^\vc{x} \cdot M_b = \gexp{}{s \vc{w}^\trs \vc{x}} \cdot M_b
+			, \qquad
+		c_2 = \vc{c}_0^{A \vc{v}} = \gexp{}{s \vc{w}^\trs A \vc{v}}.
+	\]
+	In $\ddh[0]$ instead $\vc{h} = \vc{c}_0 \sim U(\G^2)$ which implies that the challenge ciphertext is distributed as in $\cd{G}_2$. In conclusion $\mathcal{A}$ and $\mathcal{B}$ share the same advantage.
+\end{claimproof}
+
+\begin{claimproof}{\ref{claim:CraSho98:G3 is hard}}
+	Observe that beside the generation of the challenge ciphertext throughout the protocol the only information given about $\vc{x}$ is $\vc{w}^\trs \vc{x}$ that explicitly appears in the public key and is used in the decryption algorithm.\\
+	Calling $\tilde{\vc{c}}_0 = \gexp{}{\vc{u}}$ with $\vc{u} \sim \G^2$, the probability that $\vc{u} = s \vc{w}$ for some $s \in \F_q$ is $q^{-1}$.
+	Hence up to this negligible probability, $\vc{u}$ and $\vc{w}$ are linearly independent and, in particular $\vc{u}^\trs \vc{x}$ is statistically independent from $\vc{w}^\trs \vc{x}$. 
+	It follows that $\tilde{c}_1 = \tilde{\vc{c}}_0^{\vc{x}} \cdot M_b = \gexp{}{\vc{u}^\trs \vc{x}} \cdot M_b$ is uniform over $\G$.
+\end{claimproof}
+
+\begin{claimproof}{\ref{claim:CraSho98:TCR}}
+	Algorithm $\mathcal{C}$ breaking the TCR of $H$ is detailed in figure \ref{prot:CraSho98:TCR}
+	
+\begin{figure}[htb]
+	\centering
+	\algorithm{\textbf{Algorithm $\mathcal{C}$:}}{
+		Sample $\vc{w} \rgets \F_q^2$, $\alpha \rgets \F_q$, $A \rgets \F_q^{2, 2}$ and $\vc{u} \rgets \F_q^2$ s.t. $\vc{w}$ and $\vc{u}$ are l.i.
+			\\
+		Compute $\vc{w}^\perp$ and $\vc{w}^\ast$ such that $\vc{w}^\trs \vc{w}^\perp = 0$ and $\vc{w}^\trs \vc{w}^\ast = 1$.
+			\\
+		Set $\tilde{\vc{c}}_0 \gets \gexp{}{\vc{u}}, \; \tilde{c}_1 \rgets \G$; send $(\tilde{\vc{c}_0}, \tilde{c}_1)$ to the challenger.
+			\\
+		Upon receiving $H$, set $\pk = \left( \gexp{}{\vc{w}}, \gexp{}{\alpha}, \gexp{}{\vc{w}^\trs A} \right)$; Send $\mathcal{A} \gets \pk$
+			\\
+		When $\mathcal{A}$ requests the encryption of $(M_0, M_1)$:
+			\\
+		\t $\vc{v} \gets H(\tilde{\vc{c}}_0, \tilde{c}_1), \; \tilde{c}_2 \gets \tilde{\vc{c}}_0^{A \vc{v}}$. Send $\mathcal{A} \gets (\tilde{\vc{c}}_0, \tilde{c}_1, \tilde{c}_2)$
+			\\
+		When $\mathcal{A}$ requests the decryption of $(\vc{c}_0, c_1, c_2)$:
+			\\
+		\t If $(\vc{c}_0, c_1) \neq (\tilde{\vc{c}}_0, \tilde{c}_1)$ and $H(\vc{c}_0, c_1) = H(\tilde{\vc{c}}_0, \tilde{c}_1)$: Return $(\vc{c}_0, c_1)$
+			\\
+		\t If $\vc{c}_0^{\vc{w}^\perp} \neq 1$ or $(\vc{c}_0^{\vc{w}^\ast})^{\vc{w}^\trs A \vc{v}}$ with $\vc{v} \gets H(\vc{c}_0, c_1)$: Send $\mathcal{A} \gets \perp$
+			\\
+		\t Otherwise $m \gets c_1 \cdot (\vc{c}_0^{\vc{w}^\ast})^{-\alpha}$. Send $\mathcal{A} \gets m$.
+	}
+	\label{prot:CraSho98:TCR}
+	\caption{Algorithm $\mathcal{C}$ breaking the TCR of $H$}
+\end{figure}
+	
+	Calling $\tilde{c}_1 = \gexp{}{\beta}$ it follows by the linearly independence of $\vc{u}$ and $\vc{w}$ that there exists a unique $\vc{x} \in \F_q^2$ such that $\alpha = \vc{w}^\trs \vc{x}$ and $\beta = \vc{u}^\trs \vc{x}$.
+	Hence $\mathcal{C}$ correctly simulates $\cd{G}_3$ conditioned to $\vc{u}$ and $\vc{w}$ being linearly independent -- which does not occur with probability $q^{-1}$.
+	The claim is therefore proven since the if and only $\mathcal{C}$'s output is a target collision for $H$, the event in the statement occurs if and only if $\mathcal{C}$ finds a collision for $H$
+\end{claimproof}
+
+\begin{claimproof}{\ref{claim:CraSho98:G2-G3}}
+	First of all we observe that the actual decryption is identical in the two experiments, when it does not return an error, because
+	\begin{multline*}
+		\vc{c}_0^{\vc{w}^\perp} \neq 1
+			\quad \ra \quad
+		\exists s : \vc{c}_0 = \gexp{}{s \vc{w}}
+			\quad \ra \quad
+		c_1 \cdot (\vc{c}_0^{\vc{w}^\ast})^{-\vc{w}^\trs \vc{x}}
+			\; = \\
+			= \;
+		c_1 \cdot \gexp{}{s (\vc{w}^\trs \vc{w}^\ast) \cdot (-\vc{w}^\trs \vc{x})}
+			\; = \;
+		c_1 \cdot \gexp{}{s \vc{w}}^{-\vc{x}}
+			\; = \;
+		c_1 \cdot \vc{c}_0^{- \vc{x}}.
+	\end{multline*}
+	Hence the only way to distinguish the two worlds is to submit a decryption query accepted in $\cd{G}_2$ but rejected in $\cd{G}_3$. We show that for each query this can happen at most with probability $q^{-1}$.\\
+	In general, when $(\vc{c}_0, c_1, c_2)$ is accepted in $\cd{G}_2$ but rejected in $\cd{G}_3$ then we cannot have $\vc{c}_0^{\vc{w}^\trs} = 1$ or, otherwise $\exists s : \vc{c}_0 = \gexp{}{s \vc{w}}$ and
+	\[
+		(\vc{c}_0^{\vc{w}^\ast})^{\vc{w}^\trs A \vc{v}}
+			\; = \;
+		\gexp{}{s (\vc{w}^\trs \vc{w}^\ast) \cdot (\vc{w}^\trs A \vc{v})}
+			\; = \;
+		\gexp{}{s \vc{w}}^{A \vc{v}}
+			\; = \;
+		\vc{c}_0^{A \vc{v}}
+			\; = \;
+		c_2.
+	\]
+	Hence $\vc{c}_0^{\vc{w}^\trs} \neq 1$. Call $\vc{r} \in \F_q^2$ its exponent, i.e. $\vc{c}_0 = \gexp{}{\vc{r}}$, and $t$ the exponent of $c_2$. By our assumption that the query is accepted in $\cd{G}_2$ we have that $t = \vc{r}^\trs A \vc{v}$.\\
+	We are now ready to study two cases:\\
+	
+	\textit{Case 1: The query occurs before the challenge ciphertext is requested}. In this case the only information known to an unbounded adversary $\mathcal{A}$ about $A$ is $\vc{w}^\trs A$, present in the public key and used in the decryption algorithm. As $\vc{r}$ and $\vc{w}$ are linearly independent and $A \sim U(\F_q^{2, 2})$ the vectors $\vc{w}^\trs A$ and $\vc{r}^\trs A$ are uniform over $\G^2$ and independent.\\
+	To prove it formally, the matrix $M = (\vc{w}, \vc{r})$ is invertible, implying that for any $B \in \F_q^2$ there is a unique solution $A \in \F_q^2$ such that $M^\trs A = B$.\\
+	Hence $t \sim U(\G)$ and the adversary can correctly guess it only with probability $q^{-1}$.\\
+	
+	\textit{Case 2: the query occurs after the challenge ciphertext is requested}. Call
+	\[
+		\tilde{\vc{c}}_0 = \gexp{}{\vc{u}}
+			, \quad
+		\tilde{c}_1 = \gexp{}{\vc{u}^\trs \vc{x}} \cdot M_b
+			, \quad
+		\tilde{c}_2 = \gexp{}{\vc{u}^\trs A \tilde{\vc{v}}}
+	\]
+	the challenge ciphertext components. By the way $\cd{IND-CCA2}$ is defined, $(\vc{c}_0, c_1, c_2) \neq (\tilde{\vc{c}}_0, \tilde{c}_1, \tilde{c}_2)$. If by contradiction the first two entries of these tuples were equal, then, from the assumption that the first one is accepted in $\cd{G}_2$
+	\[
+		H(\vc{c}_0, c_1)
+			\; = \;
+		H(\tilde{\vc{c}}_0, \tilde{c}_1)
+			\quad \ra \quad
+		c_2
+			\; = \;
+		\vc{c}_0^{A \vc{v}}
+			\; = \;
+		\tilde{\vc{c}_0}^{A \tilde{\vc{v}}}
+			\; = \;
+		\tilde{c}_2.
+	\]
+	Therefore $(\vc{c}_0, c_1) \neq (\tilde{\vc{c}}_0, \tilde{c}_1)$ and by Claim \ref{claim:CraSho98:TCR}, up to negligible probability, their hash $\vc{v}$, $\tilde{\vc{v}}$ are distinct. Moreover, by our assumptions on $H$, $\vc{v}$ and $\tilde{\vc{v}}$ are linearly independent.\\
+	When $\vc{w}$ and $\vc{u}$ are l.i.\footnote{if they are not the adversary only knows $\vc{w}^\trs A$ and we fall back to case 1} the adversary's information on $A$ consist of $\vc{w}^\trs A$ and $\vc{w}^\trs A \tilde{\vc{v}}$, which is equivalent to $\vc{w}^\trs A$ and $\vc{r}^\trs A \tilde{\vc{v}}$ as $\{\vc{w}, \vc{u}\}$ and $\{\vc{w}, \vc{r}\}$ are both bases.
+	This implies that $\vc{r}^\trs A \vc{v}$ is uniform and independent even conditioning on the above values as, calling $M = (\vc{w}, \vc{r})$ and $V = (\tilde{\vc{v}}, \vc{v})$, the system $M^\trs A V = B$ as a unique solution for any $B \in \F_q^{2, 2}$. It follows that $t \sim U(\F_q)$ and the adversary can only correctly guess it with probability $q^{-1}$.
+	
+	\end{claimproof}
+	
+
+\end{proof}
