@@ -1,0 +1,71 @@
+%!TeX root = ../../ccc_main.tex
+%!TeX spellcheck = en_GB
+
+\subsection{Waters IBE}
+
+The first construction in the standard model using constant assumptions is presented in \cite{EC:Waters05}. 
+For simplicity, we present here the original version using symmetric pairings - even though it could be adapted to asymmetric ones.
+Historically, this is one of the first constructions that successfully used a partitioning technique in order to simulate the secret key required, but at the same time embed the underlying problem in the challenge ciphertext.
+
+\begin{figure}[htb]
+\centering
+\begin{pcarray}{lll}
+	\algorithm{
+		$\cd{Setup}:$
+		}
+		{
+			$\alpha, \beta \rgets \F_q, \quad \vc{w} \rgets \F_q^{n+1}$
+				\\
+			$\mpk \gets (\gexp{}{\alpha}, \gexp{}{\beta}, \gexp{}{\vc{w}}),
+				\quad
+			\msk \gets \gexp{}{\alpha \beta}$
+				\\
+			Return $(\mpk, \msk)$
+		}
+	&
+	\algorithm{
+		$\cd{KeyGen}(\vc{d}, \msk):$
+		}
+		{
+			$r \rgets \F_q$
+				\\
+			$\sk_\vc{d} \gets (\gexp{}{r}, \gexp{}{\alpha \beta + r \vc{w}^\trs \vc{d}})$
+				\\
+			Return $\sk_\vc{d}$
+		}
+	\\
+	\algorithm{
+			$\cd{Enc}(m, \vc{d}, \mpk):$
+			}
+			{
+				$\rho \rgets \F_q$
+					\\
+				$c_0 \gets \gexp{}{\rho}
+					, \quad 
+				c_1 \gets \gexp{1}{\rho \vc{w}^\trs \vc{d}}$
+					\\
+				$c_2 \gets m \cdot e(\gexp{}{\alpha}, \gexp{}{\beta})^\rho$
+					\\
+				Return $(c_0, c_1, c_2)$
+			}
+	&
+	\algorithm{
+		$\cd{Dec}(c, \sk_\vc{d}, \mpk):$
+		}
+		{
+			Parse $c = (c_0, c_1, c_2)$
+				\\
+			Parse $\sk_\vc{d} = (\sigma_1, \sigma_2)$
+				\\
+			$m \gets c_2 \cdot e(c_0, \sigma_2) \cdot e(c_1, \sigma_1)^{-1}$
+				\\
+			Return $m$
+		}
+\end{pcarray}
+\caption{Waters IBE. Identities are of the form $\vc{d} \in \{1\} \times \{0, 1\}^n$}
+\label{prot:Waters05:IBE}
+\end{figure}
+
+\begin{proposition}
+	The scheme in Fig.~\ref{prot:Waters05:IBE} is an $\cd{IND-CPA}$ IBE under the $\cd{BDH}$ assumption
+\end{proposition}
