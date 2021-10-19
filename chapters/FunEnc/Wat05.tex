@@ -69,3 +69,56 @@ Historically, this is one of the first constructions that successfully used a pa
 \begin{proposition}
 	The scheme in Fig.~\ref{prot:Waters05:IBE} is an $\cd{IND-CPA}$ IBE under the $\cd{BDH}$ assumption
 \end{proposition}
+
+\begin{proof}[Proof sketch]
+	In order to reduce security to the $\cd{BDH}$ problem, given an instance $h_1 = \gexp{}{\alpha}, h_2 = \gexp{}{\beta}, k = \gexp{}{\gamma}, c^\ast$, we need to build a simulator achieving two orthogonal goals:
+	First he has to give secret keys for queried identities and second, he has to embed the problem in the challenge ciphertext.
+	
+	For the first goal, if we just set $\mpk = (h_1, h_2, \gexp{}{\vc{w}})$ succeeding in producing any key would imply breaking hard problems like $\cd{CDH}$. Our next best option is to sacrifice knowledge on the exponents $\vc{w}$ and $r$, for instance by setting
+	\[
+		\vc{w} = \vc{v} + \alpha \vc{x},
+			\quad
+		r = s + \beta y
+	\]
+	Then, the exponent of $\sk_\vc{d}$ becomes
+	\begin{align*}
+		\alpha \beta + (s + \beta y) \cdot(\vc{v} + \alpha \vc{x})^\trs \vc{d} 
+			& \; =
+		\alpha \beta 
+			+ 
+		s \cdot \vc{w}^\trs \vc{d} 
+			+ 
+		\beta y \cdot \vc{v}^\trs \vc{d} 
+			+ 
+		\alpha \beta y \cdot \vc{x}^\trs \vc{d}
+	\end{align*}
+	In order to cancel out $\alpha \beta$ we need $1 - y \vc{x}^\trs \vc{d} = 0$, which can be obtained by setting $y = -(\vc{x}^\trs \vc{d})^{-1}$ if this inner product is non-zero.
+	For clarity, calling $\vc{u} = \gexp{}{\vc{v} + \alpha \vc{x}}$, one would compute the secret key by setting
+	\[
+		y \gets -\frac{1}{\vc{x}^\trs \vc{d}}
+			, \qquad
+		\sigma_0 \gets \gexp{}{r} \cdot h_2^{y}
+			, \qquad
+		\sigma_1 \gets 
+			\vc{u}^{s \vc{d}}
+				\cdot
+			h_1^{y \cdot \vc{v}^\trs \vc{d}},
+	\]
+	and finally $\sk_\vc{d} \gets (\sigma_0, \sigma_1)$. 
+	Next, to simulate the challenge ciphertext we can easily set $c_0 \gets k$ and $c_2 \gets m \cdot c^\ast$.
+	The hard part is computing the middle term $c_2$. 
+	It's exponent is $\rho \cdot \vc{v}^\trs \vc{d} + \rho \alpha \cdot \vc{x}^\trs \vc{d}$.
+	Clearly we can compute the first term but not the second one. Hence, to make this step simulatable we need $\vc{x}^\trs \vc{d} = 0$.
+	
+	To sum up, calling $\vc{d}_1, \ldots, \vc{d}_Q$ the identity keys queried by the adversary and $\vc{d}_0$ the one used in the challenge, our simulation strategy works if
+	\[
+	\begin{cases}
+		\vc{x}^\trs \vc{d}_i \neq 0 \quad \forall i \in \range{Q}
+			\\
+		\vc{x}^\trs \vc{d}_0 = 0
+	\end{cases}
+	.
+	\]
+	The proof's core is then showing how to chose $\vc{x}$ in such a way that the above condition happens with significant probability.
+	This can be done either as shown in the original paper or with standard techniques from programmable hash functions \cite{C:HofKil08}.
+\end{proof}
