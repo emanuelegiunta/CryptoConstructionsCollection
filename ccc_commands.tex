@@ -45,6 +45,8 @@
 \newcommand*{\G}{\mathbb{G}}							%Group
 \newcommand*{\F}{\mathbb{F}}							%Field
 \newcommand*{\N}{\mathbb{N}}							%Natural Number
+\newcommand*{\Z}{\mathbb{Z}}							%Integers
+\newcommand*{\QR}{\mathbb{Q}\mathbb{R}}					%quadratic residues
 \newcommand*{\range}[1]{{[#1]}}							%integer between 0 and n - 1
 	\newcommand*{\RSverbose}[3]{\cd{RS}_{{#1}, {#2}, {#3}}}	%Reed Solomon code (specifing the field)
 	\newcommand*{\RS}[2]{\cd{RS}_{{#1}, {#2}}}				%Reed Solomon code
@@ -140,6 +142,9 @@
 % for primitives and algorithms
 \createprocedurecommand{algorithm}{}{}{mode = text, linenumbering}
 
+% pchstack/pcvstack default argument
+\pcsethstackargs{space = 8pt}
+\pcsetvstackargs{space = 8pt}
 
 
 %==============================================================================%

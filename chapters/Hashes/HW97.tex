@@ -1,0 +1,159 @@
+%!TeX root = ../../ccc_main.tex
+%!TeX spellcheck = en_GB
+
+\subsection{From Claw-Free Permutation}
+
+The first general construction of chameleon hash functions was provided in \cite{NDSS:KraRab00} based on claw-free trapdoor permutations \EG{ref}. 
+First of all they observe that any chameleon hash with small message space can be extended over the set of all strings by composing with a collision-resistant hash function.
+This clearly preserves collision resistance and, given a trapdoor for the underlying smaller chameleon hash, for any $y$ in the output space and $m \in \{0, 1\}^\ast$ one can find the right $r$ such that $(h(m), r)$ is mapped to $y$.
+
+Next, they provide a chameleon hash applying to a random element $r$ subsequently either $f_0$ or $f_1$ according to the $i$-th bit of $m$, where $(f_0, f_1)$ is the pair of trapdoor permutations.
+If an adversary manages to find a collision this directly translate into a claw for $f_0, f_1$.
+
+\begin{figure}[htb]
+\centering
+\begin{pcarray}{l}
+	\algorithm{
+		$\cd{Setup}:$
+		}
+		{
+			Sample permutations $f_0, f_1$ and trapdoors $f_0^{-1}, f_1^{-1}$
+				\\
+			$\cd{key} \gets (f_0, f_1), \; \cd{td} \gets (f_0^{-1}, f_1^{-1})$.
+			Return $(\cd{key}, \cd{td})$
+		}
+		\\
+	\algorithm{
+		$\cd{Hash}(m, r, \cd{key}):$
+		}
+		{
+			Parse $m = (b_1, \ldots, b_n)$ with $b_i \in \{0, 1\}$
+				\\
+			$y \gets f_{b_n} \circ \ldots \circ f_{b_1} (r)$. Return $y$
+		}
+		\\
+	\algorithm{
+		$\cd{Forge}(y, m, \cd{td}):$
+		}
+		{
+			Parse $m = (b_1, \ldots, b_n)$ with $b_i \in \{0, 1\}$
+				\\
+			$r \gets f_{b_1}^{-1} \circ \ldots \circ f_{b_n}^{-1}(y)$. Return $r$
+		}
+\end{pcarray}
+\caption{Chameleon hash from claw-free permutations in \cite{NDSS:KraRab00}, with $m \in \{0, 1\}^n$}
+\label{prot:KraRab:trapdoor_permutations}
+\end{figure}
+
+\begin{proposition}
+	If $f_0, f_1$ is a pair of claw-free trapdoor permutations, then the construction in figure \ref{prot:KraRab:trapdoor_permutations} is a chameleon hash
+\end{proposition}
+
+
+\subsection{From Factoring}
+In \cite{NDSS:KraRab00} a concrete chameleon hash is provided based on the hardness of factoring by roughly instantiating the generic construction based on claw-free trapdoor permutations.
+To do so they simply provide such a primitive whose claw-freeness is implied by factoring.
+This is done by setting, for a given RSA modulus $N = pq$ with $p = 3 \mod 8$ and $p = 7 \mod 8$ by setting
+\[	
+	f_0 : \QR \to \QR
+		\: : \:
+	f_0(x) = x^2,
+		\qquad
+	f_1 : \QR \to \QR
+		\: : \:
+	f_1(x) = 4 x^2.
+\]
+The restriction imposed on $p, q$ guarantees that $-1$ is not a square both modulo $p$ and $q$, $2$ is not a quadratic residue $\mod p$ but it is $\mod q$.
+Notice that knowing the factorisation of $N$ one can invert those functions by computing through chinese remainder theorem a square root that is itself a quadratic residue.
+In conclusion one can prove the following
+
+\begin{proposition}
+	If factoring is hard then $f_0, f_1$ is a pair of claw-free trapdoor permutations on $\QR$
+\end{proposition}
+
+However deciding membership in $\QR$ is hard so an adversary breaking the resulting chameleon hash obtain directly from \ref{prot:KraRab:trapdoor_permutations} may find collision for values of $r \in \Z_N \setminus \QR$ leaving the reduction unable to tell this is a valid collision which translate into a claw for $f_0, f_1$.
+For this reason one need to adapt the general construction by composing with $g : \Z_N \to \QR$ such that $g(x) = x^2$.
+
+\begin{figure}[htb]
+\centering
+\begin{pcarray}{l}
+	\algorithm{
+		$\cd{Setup}:$
+		}
+		{
+			$p, q \rgets \{0, 1\}^\ell$ primes s.t. $p \bmod 8 = 3, \; q \bmod 8 = 7$
+				\\
+			$N \gets pq, \; \cd{key} \gets N, \; \cd{td} \gets (p, q)$. Return $\cd{key}, \cd{td}$
+		}
+		\\
+	\algorithm{
+		$\cd{Hash}(m, r, \cd{key}):$
+		}
+		{
+			Parse $m = (b_1, \ldots, b_n)$ with $b_i \in \{0, 1\}$
+				\\
+			$y \gets f_{b_n} \circ \ldots \circ f_{b_1} (r^2)$. Return $y$
+		}
+		\\
+	\algorithm{
+		$\cd{Forge}(y, m, \cd{td}):$
+		}
+		{
+			Parse $m = (b_1, \ldots, b_n)$ with $b_i \in \{0, 1\}$
+				\\
+			$r \gets f_{b_1}^{-1} \circ \ldots \circ f_{b_n}^{-1}(y)$. Return $r$
+		}
+\end{pcarray}
+\caption{Chameleon hash from factoring in \cite{NDSS:KraRab00}, $m \in \{0, 1\}^n$}
+\label{prot:KraRab:factoring}
+\end{figure}
+
+\begin{proposition}
+	If factoring is hard, the construction in Figure \ref{prot:KraRab:factoring} is a chameleon hash function
+\end{proposition}
+
+\subsection{From Discrete Log}
+Still in \cite{NDSS:KraRab00} a chameleon hash based on discrete log is proposed. The idea could be generalised to produce chameleon hash from any perfectly hiding equivocal commitment.
+This scheme however achieve mildly weaker forging property as $\cd{Forge}$ algorithm requires in input not only an image $y$ but also the message and randomness used to generate it.
+
+\begin{figure}[htb]
+\centering
+\begin{pcarray}{l}
+	\algorithm{
+		$\cd{Setup}:$
+		}
+		{
+			$g \rgets \G, \; x \rgets \F_q, \; h \gets g^x$
+				\\
+			$\cd{key} \gets (g, h), \; \cd{td} \gets x$. Return $\cd{key}, \cd{td}$
+		}
+		\\
+	\algorithm{
+		$\cd{Hash}(m, r, \cd{key}):$
+		}
+		{
+			$y \gets g^m h^r$. Return $y$
+		}
+		\\
+	\algorithm{
+		$\cd{Forge}((y, m', r'), m, \cd{td}):$
+		}
+		{
+			$r \gets r' + x^{-1}(m' - m)$. Return $r$
+		}
+\end{pcarray}
+\caption{Chameleon hash from Discrete Log in \cite{NDSS:KraRab00}, $m \in \F_q$. Procedure $\cd{Forge}$ requires $m', r'$ such that $y = \cd{Hash}(m', r', \cd{key})$}
+\label{prot:KraRab:dlog}
+\end{figure}
+
+\begin{proposition}
+	If the discrete logarithm problem is hard in $\G$, the construction in Figure \ref{prot:KraRab:dlog} is a chameleon hash function
+\end{proposition}
+
+
+
+
+
+
+
+
