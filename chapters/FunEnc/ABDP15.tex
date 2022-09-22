@@ -1,0 +1,119 @@
+%!TeX root = ../../ccc_main.tex
+%!TeX spellcheck = en_GB
+
+\subsection{ABDP Selectively Secure IPFE from DDH}
+\EG{I'm using the group additively, this should be done in other examples too since the notation is much much clearer}
+One of the first functional encryption scheme was proposed in \cite{PKC:ABDP15}.
+The construction, which can be generalized to work with black box encryption schemes with certain homomorphic properties, can be summarized as a vector ElGamal encryption with common randomness.
+The construction only uses a prime order group, with no pairings and of known order.
+Notice that similarly to other group-based FE scheme, the decryption result is obtained in the exponent, and can then be retrieved by brute-force discrete logarithm algorithms efficiently as long as it lies in a polynomially bounded range.
+In terms of security it is only selectively secure in the standard model, however it can be proved adaptively secure in the GGM \EG{not in the original paper, should I prove it?}.
+
+\begin{figure}[htb]
+\centering
+\begin{pcarray}{lll}
+	\algorithm{
+		$\cd{Setup}(1^\secp):$
+		}
+		{
+			$\vc{v} \rgets \F_q^n$
+				\\
+			$\mpk \gets \gexp{}{\vc{v}}, \quad \msk \gets \vc{v}$
+				\\
+			Return $(\mpk, \msk)$
+ 		}
+	&
+	\algorithm{
+		$\cd{KeyGen}(\vc{d}, \msk):$
+		}
+		{
+			Return $\sk_\vc{d} \gets \vc{d}^\trs \vc{v}$
+		}
+	\\
+	\algorithm{
+		$\cd{Enc}(\vc{x}, \mpk):$
+		}
+		{
+			$s \rgets \F_q$
+				\\
+			$c \gets \left( \gexp{}{s}, 
+				\; 
+			\gexp{}{\vc{x} + s \vc{v}} \right)$
+				\\
+			Return $c$
+		}
+	&
+	\algorithm{
+		$\cd{Dec}(c, \sk_\vc{d}, \mpk):$
+		}
+		{
+			Parse $c = (c_0, \vc{c}_1)$
+				\\
+			$m \gets \vc{d}^\trs \vc{c}_1 - \sk_\vc{d} \cdot c_0$
+				\\
+			Return $m$
+		}
+\end{pcarray}
+\caption{ABDP Selectively Secure Inner Product Functional Encryption.}
+\label{prot:ABDP15:IPFE}
+\end{figure}
+
+The scheme is correct since, using the same notation of Fig.~\ref{prot:ABDP15:IPFE}
+\[
+	m
+		\; = \;
+	\gexp{}{\vc{d}^\trs \vc{x} + s \cdot \vc{d}^\trs \vc{x}}
+		-
+	\gexp{}{s \cdot \vc{d}^\trs \vc{x}}
+		\; = \;
+	\gexp{}{\vc{d}^\trs \vc{x}}.
+\]
+
+\begin{proposition}
+	The scheme in Fig.~\ref{prot:ABDP15:IPFE} is a Selectively Secure Functional Encryption with Inner Product functionality under the $\ddh$ assumption. 
+\end{proposition}
+\begin{proof}[sketch]
+	We provide a direct reduction $\mathcal{B}$ to $\ddh$ given an adversary $\mathcal{A}$ for the indistinguishability game.
+	On input $\gexp{}{\alpha}, \gexp{}{\beta}, \gexp{}{\gamma}$, $\mathcal{B}$ executes the adversary which will query $\vc{x}_0, \vc{x}_1$. Then it samples a random bit $b$ and compute the master public key and challenge ciphertext as
+	\[
+		\mpk
+			\; = \;
+		\gexp{}{\vc{u} + \alpha(\vc{x}_1 - \vc{x}_0)}
+			\qquad
+		c
+			\; = \;
+		\left( \gexp{}{\beta}, \; \gexp{}{\vc{x}_b + \beta \vc{u} + \gamma(\vc{x}_1 - \vc{x}_0)} \right)
+	\]
+	with $\vc{u}$ uniformly sampled over the linear space $V \subseteq \F_q^n$ orthogonal to $\vc{x}_1 - \vc{x}_0$.
+	When the adversary queries the secret key for a vector $\vc{d}$ the reduction replies with
+	\[
+		\sk_\vc{d}
+			\; = \;
+		\vc{d}^\trs \vc{u}.
+	\]
+	Finally when the adversary guesses a bit $b'$ the reduction returns $1$ if the guess was correct, i.e. if $b' = b$, $0$ otherwise.
+	
+	Regardless of which experiment $\mathcal{B}$ is executed in, secret keys are generated correctly if $\mathcal{A}$ only performs legitimate queries, that are vectors $\vc{d}$ such that $\vc{d}^\trs \vc{x}_0 = \vc{d}^\trs \vc{x}_1$ as this implies $\vc{d}^\trs(\vc{x}_1 - \vc{x}_0)$ and in particular
+	\[
+		\sk_\vc{d}	
+			\; = \;
+		\vc{d}^\trs \vc{v}
+			\; = \;
+		\vc{d}^\trs \left( \vc{u} + \alpha(\vc{x}_1 - \vc{x}_0) \right)
+			\; = \;
+		\vc{d}^\trs \vc{u}.
+	\]
+	If $\mathcal{B}$ is executed in $\ddh[1]$, that is with $\gamma = \alpha \beta$, the challenge ciphertext is also correctly generated as the exponent of the second component becomes $\beta$ times the exponent of the master public key.
+	Conversely if $\mathcal{B}$ is executed in $\ddh[0]$, $\gamma$ is uniformly random and in particular $\vc{x}_b + \gamma(\vc{x}_0 - \vc{x}_1)$ is uniformly distributed over the affine line containing $\vc{x}_0$ and $\vc{x}_1$.
+	Thus $\mathcal{A}$ has no information on $b$ and cannot guess better than at random.
+	In conclusion
+	\begin{align*}
+		\adv{\mathcal{B}}
+			\; &= \;
+		\left| \prob{\mathcal{A} \text{ wins} \,|\, \ddh[1]} - \prob{\mathcal{A} \text{ wins} \,|\, \ddh[0]} \right|
+			\\ &= \;
+		\left| \frac{1}{2} + \frac{1}{2} \cdot \adv{\mathcal{A}} - \frac{1}{2} \right|
+			\; = \;
+		\frac{1}{2} \cdot \adv{\mathcal{A}}.
+	\end{align*}
+\end{proof}
