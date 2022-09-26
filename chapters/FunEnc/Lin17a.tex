@@ -1,0 +1,106 @@
+%!TeX root = ../../ccc_main.tex
+%!TeX spellcheck = en_GB
+
+%===============================================================================
+% Local Commands
+\newcommand{\IPsetup}{\cd{IP.Setup}}
+\newcommand{\IPenc}{\cd{IP.Enc}}
+\newcommand{\IPkeygen}{\cd{IP.KeyGen}}
+\newcommand{\IPdec}{\cd{IP.Dec}}
+
+
+%===============================================================================
+
+\subsection{Lin Weak Function Hiding Secret Key IPFE}
+In \cite{C:Lin17}, Section 6, the first pairing based rate-1 construction\footnote{i.e. such that to encrypt a vector of length $n$ the ciphertext has length $n + o(n)$.} of a function hiding IPFE was proposed.
+This improved the previous construction \cite{AC:BisJaiKow15} which expanded encrypted vectors by a factor $2$ and returned upon decryption elements of the form
+\[
+	\gexp{T}{\theta}
+		, \;
+	\gexp{T}{\theta \cdot \vc{x}^\trs \vc{y}}
+\]
+with $\vc{x}$ being the encrypted vector and $\vc{y}$ the vector linked to the secret key.
+Although this allows to recover $\vc{x}^\trs \vc{y}$ when this values is known to lie in a polynomially small set, it fails to cover the more general case of computing the generalized pairing
+\[
+	e(\gexp{1}{\vc{x}}, \gexp{2}{\vc{y}})
+		\; = \;
+	\gexp{T}{\vc{x}^\trs \vc{y}}.
+\]
+%
+To solve this issue, \cite{C:Lin17} abandoned the dual pairing vector spaces paradigms of Okamoto and Takashima \cite{PAIRING:OkaTak08, AC:OkaTak09}, building instead almost generically upon the IPFE in \cite{PKC:ABDP15}.
+The key properties of this scheme are:
+\begin{enumerate}
+	\item Decryption in \cite{PKC:ABDP15} consist of evaluating an ``inner product'' with ciphertext in $\G^{n+1}$ and secret key in $\F_q^{n+1}$.
+	
+	\item The decryption algorithm is linear in the vector $\vc{d}$ which describes the function.
+	Thus, it can be generalized to vectors of group elements in $\G_1^n$ or $\G_2^n$.
+\end{enumerate}
+Given them, the core idea to encrypt $\vc{x}$ and generate a secret key for $\vc{y}$ is to apply the IPFE twice: 
+$\vc{x}_0$ is first encrypted into $\gexp{1}{\vc{x}_1} \in \G_1^{n+1}$ while from $\vc{y}_0$ a related secret key $\vc{y}_1 \in \F_q^{n+1}$ is computed.
+Next, having setted up a new instance of the IPFE for vectors of length $n+1$, in order to hide $\vc{y}_0$, $\vc{y}_1$ is encrypted into $\gexp{2}{\vc{y}_2} \in \G_2^{n+2}$ and $\gexp{1}{\vc{x}_1}$ is used as input in the key generation procedure to get $\gexp{2}{\vc{x}_2} \in \G_1^{n+2}$.
+In this way performing a pairing inner product between $\vc{c}$ and $\sk_\vc{y}$ returns
+\[
+	\gexp{T}{\vc{x}_2^\trs \vc{y}_2}
+		\; = \;
+	\gexp{T}{\vc{x}_1^\trs \vc{y}_1}
+		\; = \;
+	\gexp{T}{\vc{x}^\trs \vc{y}}
+\]
+where all the equality follow as the result of each of these inner products is also the result of the respective decryption procedure.
+More formally the scheme is described in Fig.~\ref{prot:Lin17:wfh_IPFE} explicitly.
+
+\begin{figure}[htb]
+\centering
+\begin{pcarray}{lll}
+	\algorithm{
+		$\cd{Setup}(1^\secp, n):$
+		}
+		{
+			$\vc{v}_1 \rgets \F_q^n, \; \vc{v}_2 \rgets \F_q^{n+1}$
+				\\
+			Return $\msk = (\vc{v}, \vc{w})$
+ 		}
+	&
+	\algorithm{
+		$\cd{KeyGen}(\vc{y}, \msk):$
+		}
+		{
+			Sample $r \rgets \F_q$
+				\\
+			$\vc{y}_1 \gets (-\vc{y}^\trs \vc{v}_1, \; \vc{y})$
+				\\
+			$\gexp{2}{\vc{y}_2} \gets \left(\gexp{2}{r}, \; \gexp{2}{\vc{y}_1 + r \vc{v}_2}\right)$
+				\\
+			Return $\sk = \gexp{2}{\vc{y}_2}$
+		}
+	\\
+	\algorithm{
+		$\cd{Enc}(\vc{x}, \msk):$
+		}
+		{
+			Sample $s \rgets \F_q$
+				\\
+			$\gexp{1}{\vc{x}_1} \gets \left( \gexp{1}{s},\; \gexp{1}{\vc{x} + s \vc{v}_1} \right)$
+				\\
+			$\gexp{1}{\vc{x}_2} \gets \left( \gexp{1}{-\vc{x}_1^\trs \vc{v}_2},\; \gexp{2}{\vc{x}_1} \right)$
+				\\
+			Return $\vc{c} = \gexp{1}{\vc{x}_2}$
+		}
+	&
+	\algorithm{
+		$\cd{Dec}(\vc{c}, \sk):$
+		}
+		{
+			Return $e(\vc{c}, \sk)$
+		}
+\end{pcarray}
+\caption{Weakly secure function hiding IPFE in \cite{C:Lin17}.}
+\label{prot:Lin17:wfh_IPFE}
+\end{figure}
+
+\begin{proposition}
+	The scheme in Fig.~\ref{prot:Lin17:wfh_IPFE} is a weakly selectively secure function-hiding secret-key IPFE under the SXDH assumption. 
+\end{proposition}
+\begin{proof}[Proof sketch]
+	\EG{TODO: Clarify the definition of selective security in this context (all queries are done together). This weak security notion comes from the usage of ABDP, which is only selectively secure.}
+\end{proof}
