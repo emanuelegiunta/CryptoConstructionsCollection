@@ -71,7 +71,7 @@ In conclusion one can prove the following
 	If factoring is hard then $f_0, f_1$ is a pair of claw-free trapdoor permutations on $\QR$
 \end{proposition}
 
-However deciding membership in $\QR$ is hard so an adversary breaking the resulting chameleon hash obtain directly from \ref{prot:KraRab:trapdoor_permutations} may find collision for values of $r \in \Z_N \setminus \QR$ leaving the reduction unable to tell this is a valid collision which translate into a claw for $f_0, f_1$.
+However deciding membership in $\QR$ is hard so an adversary breaking the resulting chameleon hash obtain directly from \ref{prot:KraRab:trapdoor_permutations} may find collision for values of $r \in \Z_N \setminus \QR$ leaving the reduction unable to tell whether this is a valid collision which translate into a claw for $f_0, f_1$.
 For this reason one need to adapt the general construction by composing with $g : \Z_N \to \QR$ such that $g(x) = x^2$.
 
 \begin{figure}[htb]
