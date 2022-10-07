@@ -37,6 +37,7 @@
 \newcommand*{\Ker}{{\mathrm{Ker}}\,}					%kernell
 \renewcommand*{\Im}{{\mathrm{Im}}\,}					%image
 \renewcommand*{\ker}{\Ker}								%making \ker and \Ker synonims
+\newcommand*{\dir}{{\mathrm{dir}}\,}							%direction of affine sp.
 
 
 %==============================================================================%
@@ -146,6 +147,18 @@
 % pchstack/pcvstack default argument
 \pcsethstackargs{space = 8pt}
 \pcsetvstackargs{space = 8pt}
+
+% code comments style
+\renewcommand{\pccomment}[1]{\textcolor{black!66!}{\small\texttt{//~#1}}}
+
+% PC [PseudoCode] spaces
+\newlength{\pcsmallskip}
+\newlength{\pcmedskip}
+\newlength{\pcbigskip}
+
+\setlength{\pcsmallskip}{2pt}
+\setlength{\pcmedskip}{4pt}
+\setlength{\pcbigskip}{8pt}
 
 
 %==============================================================================%
