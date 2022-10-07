@@ -14,14 +14,15 @@ At a high level the main observations they build upon are
 	\item Using Hash Proof Systems it is possible to setup both a public key and private key instance of \cite{PKC:ABDP15} and at any time produce a ciphertext with the private-key system.
 \end{enumerate}
 
-A detailed description is given in Fig.~\ref{prot:AgrLibSth16:IPFE}.
+Several years later in \cite{PKC:ALMT20} it was observed that the private key scheme considered above actually achieves (one query) adaptive simulation security (a stronger notion), showing consequently that this construction too satisfies adaptive simulation security.
+The scheme is detailed in Fig.~\ref{prot:AgrLibSth16:IPFE}.
 Correctness follows since
 \[
 	m
 		\; = \;
- 	\gexp{}{\vc{d}^\trs \left(\vc{x} + A \vc{w} \right)}
+ 	\gexp{}{\vc{d}^\trs \left(\vc{x} + rA \vc{w} \right)}
  		-
- 	\gexp{}{\vc{d}^\trs A \vc{w}}
+ 	\gexp{}{\vc{d}^\trs A (r\vc{w})}
  		\; = \;
  	\gexp{}{\vc{d}^\trs\vc{x}}.
 \]
@@ -76,7 +77,8 @@ Correctness follows since
 \end{figure}
 
 \begin{proposition}
-	The scheme in Fig.~\ref{prot:AgrLibSth16:IPFE} is an Adaptively Secure Functional Encryption for Inner Production is $\ddh$ is hard in $\G$.
+	\label{prop:AgrLibSth16:AS_IND_IPFE_DDH}
+	The scheme in Fig.~\ref{prot:AgrLibSth16:IPFE} is an Adaptively Secure Functional Encryption for Inner Product if $\ddh$ is hard in $\G$.
 \end{proposition}
 \begin{proof}
 	First, we define the following hybrid games, with $b \sim U(\{0, 1\})$ being the bit used in the indistinguishability game \EG{ref}.
@@ -141,4 +143,111 @@ Correctness follows since
 	\]
 	where the second equation follows as $Y^\trs B \in \F_q^{t, 2}$ is the zero matrix because it maps $\vc{z}, \vc{w}$ (a base of $\F_q^2$) to the zero vector.
 	Thus $\adv{A} \leq q^{-1}$ in $\cd{G}_1$, concluding the proof.
+\end{proof}
+
+\begin{proposition}
+	The scheme in Fig.~\ref{prot:AgrLibSth16:IPFE} satisfied Adaptively Simulation Security if $\ddh$ is hard in $\G$.
+\end{proposition}
+\begin{proof}
+	We first transform the real game into an hybrid, and then provide a stateful simulator $\mathcal{S}$ for the latter.
+	As in the proof of Proposition \ref{prop:AgrLibSth16:AS_IND_IPFE_DDH}, we call
+	\begin{itemize}
+		\item $\cd{G}_0$: The real game \EG{ref}
+		
+		\item $\cd{G}_1$: As $\cd{G}_0$ but when the adversary submit the challenge message $\vc{x}^\ast$, the challenger samples $\vc{z} \rgets \F_q^2$ and returns
+		\[
+			c = \left( \gexp{}{\vc{z}}, \; \gexp{}{\vc{x}^\ast + A \vc{z}} \right).
+		\]
+	\end{itemize}
+	The core ideas for building a simulator for $\cd{G}_1$ are
+	\begin{enumerate}
+		\item If $\vc{w}$ and $\vc{z}$ are linearly independent, $A \vc{w}$ and $A \vc{z}$ are uniformly and independently distributed vectors, the latter being the ``secret key'' used to only encrypt the challenge.
+		As public parameter hides $A\vc{z}$ information theoretically we can progressively \textit{collapse} this vector in order to answer key queries.
+		
+		\item Each key for $\vc{y}$ reveals $\vc{y}^\trs A \vc{z}$.
+		This can be simulated with random values, unless $\vc{y}$ is a linear combination of previously asked keys.
+		
+		\item The challenge ciphertext is simulated picking a vector $\hat{\vc{x}}$ consistent with $\vc{y}_i^\trs \hat{\vc{x}} = \vc{y}_i^\trs \vc{x}^\ast$ along with a random $\vc{k}$ uniformly distributed in the set of ``consistent secret keys'', i.e.\ such that $\vc{y}_i^\trs \vc{k} = \vc{y}_i^\trs A \vc{z}$.
+		Finally
+		\[
+			c = \left( \gexp{}{\vc{z}}, \; \gexp{}{\hat{\vc{x}} + \vc{k}} \right).
+		\]
+		
+		\item The remaining key requests for $\vc{y}$ again leak $\vc{y}^\trs A \vc{z}$, but they further have to decrypt the challenge ciphertext to $\vc{y}^\trs \vc{x}^\ast$.
+		The only correct key is obtained ``virtually'' setting $\vc{y}^\trs A \vc{z} = \vc{y}^\trs(\vc{x}^\ast - \hat{\vc{x}} - \vc{k})$.
+	\end{enumerate}
+	
+	\begin{figure}[htb]
+	\centering
+	\begin{pcvstack}
+		\algorithm{
+		Simulator $\mathcal{S}:$
+		}
+		{
+			%===================================================================
+			% Setup
+			\textbf{When} $\cd{Setup}^\ast(1^\secp, n)$ is requested:
+				\\
+			\t Sample $\vc{w}, \vc{v} \rgets \F_q^2$, $\vc{h} \rgets \F_q^n$
+				\qquad
+			\pccomment{h = Aw in the hybrid game}
+				\\
+			\t Initialize $L = \F_q^n$
+				\qquad
+			\pccomment{space of possibile values Az may have}
+				\\
+			\t Set $T \gets (\vc{w}, \vc{z}) \in \F_q^{2,2}$
+				\\
+			\t Return $\vc{mpk}^\ast \gets \left( \gexp{}{\vc{w}}, \gexp{}{\vc{h}} \right)$
+				\\[\pcmedskip]
+			%===================================================================
+			% Key Gen, first phase
+			\textbf{When} $\cd{KeyGen}^\ast(\vc{y})$ is requested:
+				\\
+			\t $\sigma_1 \gets \vc{y}^\trs \vc{h}$
+				\qquad
+			\pccomment{1st component of y*A in the dual base of w, z}
+				\\
+			\t \textbf{If} $\vc{y} \perp \dir L$:
+				\qquad
+			\pccomment{i.e. if y*k is constant for all k in L}
+				\\
+			\t\t $\sigma_2 \gets \vc{y}^\trs L$
+				\\
+			\t \textbf{Else}:
+				\\
+			\t\t Sample $\sigma_2 \rgets \F_q$
+				\\
+			\t\t Update $L \gets L \cap \{ \vc{k} \: : \: \vc{y}^\trs \vc{k} = \sigma_2\}$
+				\\
+			\t Return $\sk_\vc{y} \gets (\sigma_1, \sigma_2)^\trs \cdot T^{-1}$
+				\\[\pcmedskip]
+			%===================================================================
+			% Challenge Ciphertext
+			\textbf{When} $\cd{Enc}^\ast(\{\vc{y}_i^\trs \vc{x}^\ast\}_{i \in Q})$ is requested:
+				\\
+			\t Find $\hat{\vc{x}} \in \F_q^n$ such that $\vc{y}_i^\trs \hat{\vc{x}} = \vc{y}_i^\trs \hat{\vc{x}}$
+				\\
+			\t Sample $\vc{k} \rgets L$
+				\\
+			\t Return $c \gets \left( \gexp{}{\vc{z}}, \; \gexp{}{\hat{\vc{x}} + \vc{k}} \right)$
+				\\[\pcmedskip]
+			%===================================================================
+			% Key Gen, second phase
+			\textbf{When} $\cd{KeyGen}^\ast(\vc{y}, \vc{y}^\trs \vc{x}^\ast)$ is requested:
+				\\
+			\t $\sigma_1 \gets \vc{y}^\trs \vc{h}$
+				\\
+			\t $\sigma_2 \gets \vc{y}^\trs (\vc{x}^\ast - \hat{\vc{x}} - \vc{k})$
+				\\
+			\t Return $\sk_\vc{y} \gets (\sigma_1, \sigma_2)^\trs \cdot T^{-1}$	
+		}
+	\end{pcvstack}
+	\label{prot:AgrLibSth16:proof:simulator}
+	\caption{Simulator $\mathcal{S}$ for adaptive simulation security of \cite{C:AgrLibSte16}.}
+	\end{figure}
+	
+	To prove that $\cd{G}_1$ follows the same distribution of the simulated game (up to conditioning on $\vc{w}, \vc{z}$ being linearly independent) with $\mathcal{S}$ is enough to observe that:
+	secret keys are correctly generated in the simulation and follow the same distribution of $\cd{G}_1$;
+	the challenge ciphertext is correctly distributed and consistent with given secret keys.
 \end{proof}
