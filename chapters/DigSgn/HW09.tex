@@ -9,7 +9,7 @@ At a high level for any message $m \in \{0, 1\}^n$ let $m^{(i)}$ be its prefix o
 If the adversary requires signatures of $m_1, \ldots, m_Q$ and forges a messages $\hat{m}$, then there exists at least a message $m_{i^\ast}$ with the longest common prefix with $\hat{m}$.
 In other words $\hat{m}^{(t^\ast)} = m_{i^\ast}^{(t^\ast)}$.
 The reduction can then correctly guess $i^\ast$ and $t^\ast$ with significant probability and ``embed'' the challenge in all those message whose $t^\ast$ first bits agree with $m_{i^\ast}$ and the $t^\ast + 1$-th don't, while still being able to simulate the other messages.
-Notice that the $m_i$ don't satisfy this requirement, and that their knowledge is essential to correctly produce this partition.
+Notice that the $m_i$ don't satisfy this requirement, and that knowing them in advance (even before producing public parameters) is essential to correctly produce this partition.
 
 Finally they apply this technique using a programmable target collision-resistant hash function $H : \{0, 1\}^\ast \to \{0, 1\}^\ell$ mapping strings to prime numbers.
 This can be obtained from a PRF. 
