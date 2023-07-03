@@ -3,7 +3,7 @@
 
 \subsection{Cramer-Shoup}
 
-The first asymmetric encryption scheme proven $\cd{IND-CCA2}$ secure in the plain model under standard assumptions, namely $\ddh$ and the existence of target collision-resistant hash functions, was the Cramer-Shoup cryptosystem \cite{C:CraSho98}. Later reformulations generalised their construction to Hash Proof System \cite{EC:CraSho02} which can be based on a broader class of decisional problems.
+The first asymmetric encryption scheme proven $\cd{IND-CCA2}$ secure in the plain model under standard assumptions, namely $\ddh$ and the existence of target collision-resistant hash functions, was the Cramer-Shoup cryptosystem \cite{C:CraSho98}. Later reformulations generalized their construction to Hash Proof System \cite{EC:CraSho02} which can be based on a broader class of decisional problems.
 The scheme is presented in Figure \ref{prot:CraSho98}. There $\gexp{}{x} = g^x$ with $g$ being the generator of a group $\G$ with prime order $q$ and $H : \{0,1\}^\ast \to \F_q^2$ denote a TCR \EG{ref} hash function such that any two distinct vector in its image are linearly independent.
 This last requirement is not restrictive since, if $h : \{0, 1\} \to \F_q^2$ is a TCR, then $H(x) \coloneqq (1, h(x))$ is a TCR with the above property.
 For simplicity in the scheme decryption we omit the hash function's key, implicitly sampled during the setup.
