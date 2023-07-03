@@ -13,7 +13,7 @@ Notice that the $m_i$ don't satisfy this requirement, and that knowing them in a
 
 Finally they apply this technique using a programmable target collision-resistant hash function $H : \{0, 1\}^\ast \to \{0, 1\}^\ell$ mapping strings to prime numbers.
 This can be obtained from a PRF. 
-A key a PRF's key $k$ and $c \rgets \{0, 1\}^\ell$ and $H(m) \coloneqq f_k(j, m) \oplus c$ where $j$ is the smallest integer that makes $f_k(j, m) \oplus c$ a prime number.
+A key is then a PRF's key $k$ and $c \rgets \{0, 1\}^\ell$ and $H(m) \coloneqq f_k(j, m) \oplus c$ where $j$ is the smallest integer that makes $f_k(j, m) \oplus c$ a prime number.
 
 \begin{figure}[htb]
 \centering
@@ -44,7 +44,7 @@ A key a PRF's key $k$ and $c \rgets \{0, 1\}^\ell$ and $H(m) \coloneqq f_k(j, m)
 		{
 			Set $m^{(i)}$ the first $i$ bits of $m \in \{0, 1\}^n$
 				\\
-			$e_i \gets H(m^{(i)}. \;$ Return $h \checkeq \sigma^{e_1 \cdot \ldots \cdot e_n}$
+			$e_i \gets H(m^{(i)}). \;$ Return $h \checkeq \sigma^{e_1 \cdot \ldots \cdot e_n}$
 		}
 \end{pcvstack}
 \label{prot:HohWat09}
