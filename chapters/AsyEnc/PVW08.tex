@@ -1,0 +1,72 @@
+\subsection{PVW Lossy Encryption from DDH}
+\EG{NOTE: we use the group in additive notation}
+Although the formal definition of \textit{lossy encryption} was first given in \cite{AC:HLOV11}, the first construction and motivations dates back to \cite{C:PeiVaiWat08}.
+In that paper the primitive was presented as \textit{dual-mode} encryption where the public key can be generated in two indistinguishable ways.
+In \textit{injective} mode, each ciphertext produced with it preserve the plaintext and allows for correct decryption.
+Conversely in \textit{messy} or \textit{lossy} mode, encryption retain almost no information on the message.
+
+In the following we present a slightly modified version of their scheme based on DDH.
+First, it generalizes ElGamal to the group $\G^2$ for regular encryption, with public key in injective mode being $\vc{g}, \vc{h}$ with $\vc{h} = x \cdot \vc{g}$. Concretely, for message $m \in \G$ and randomness $\vc{r} \in \F_q^2$
+\[
+	\vc{c} = \left( \vc{r}^\trs \vc{g}, \; \vc{r}^\trs \vc{h} + m \right)
+\]
+Conversely lossy keys are generated choosing $\vc{g}, \vc{h}$ both random.
+The idea is that in this way the encryption of any message will be uniformly distributed over the ciphertext space even if the discrete logarithms of $\vc{g}$ and $\vc{h}$ are known.
+The full construction presented in Figure~\ref{prot:PVW08}
+
+\begin{figure}[htb]
+\centering
+\begin{pcarray}{ll}
+	\algorithm{
+		$\cd{Setup}(1^\secp):$
+		}
+		{
+			$\sk = x \rgets \F_q$ the secret key
+				\\
+			$\vc{g} \rgets \G^2, \; \vc{h} \gets x \cdot \vc{g}$
+				\\
+			Return $(\pk, \sk)$ with $\pk = (\vc{g}, \vc{h})$	
+		}
+	&
+	\algorithm{
+		$\cd{LossySetup}(1^\secp):$
+		}
+		{
+			$\vc{g}, \vc{h} \rgets \G^2$
+				\\
+			Return $\pk = (\vc{g}, \vc{h})$
+		}
+	\\
+	\algorithm{
+		$\cd{Enc}(m, \pk)$
+		}
+		{
+			Parse $\pk = (\vc{g}, \vc{h})$
+				\\
+			Sample $\vc{r} \rgets \F_q^2$
+				\\
+			$c_1 \gets \vc{r}^\trs \vc{g}, \; c_2 \gets \vc{r}^\trs \vc{h} + m$
+				\\
+			Return $\vc{c} = (c_1, c_2)$
+		}
+	&
+	\algorithm{
+		$\cd{Dec}(c, \sk):$
+		}
+		{
+			Parse $c = (c_1, c_2) \in \G^2$
+				\\
+			Return $m \gets c_1 - x \cdot c_2$
+		}
+\end{pcarray}
+\label{prot:PVW08}
+\caption{\cite{C:PeiVaiWat08} encryption for HHS, with message space ${0, 1}^\mu$}
+\end{figure}
+
+\begin{proposition}
+	\label{prop:GVW08}
+	The scheme described in Figure~\ref{prot:PVW08} is an IND-CPA secure lossy encryption scheme if DDH is hard.
+\end{proposition}
+\begin{proof}
+	\EG{TODO: IND-CPA is like el-gamal. Key indistinguishability is plain DDH. Lossiness comes for the fact that for any $m$ the map $\vc{r} \mapsto \cd{Enc}(\pk, m; \vc{r})$ is surjective}
+\end{proof}

@@ -1,0 +1,71 @@
+\subsection{Stolbunov from Group Actions}
+
+In the context of hard homogeneous space, a generalization of cryptographic groups which models a group action on a set (without assuming the set is also a group), the first encryption scheme was proposed by \cite{OTHER:Stolbunov10}.
+First let us recall the notation.
+Given a group $\G$ and a set $\mathcal{E}$ the actions is denoted as
+\[
+	\star : \G \times \mathcal{E} \to \G
+\]
+with the assumption that $\mathcal{E}$ is a single orbit, that is $\mathcal{E} = \G \star E_0$ for some $E_0 \in \mathcal{E}$.
+The following scheme assumes $\G$ to be commutative and the action faithful, that is each $E \in \mathcal{E}$ admit one and only one $a \in \G$ such that $a \star E_0 = E$.
+
+The main obstacle to instantiate ElGamal encryption over HHS is that $(g^r, h^r \cdot m)$ with $m$ group element cannot be computed as we do not have a group operation.
+The solution in \cite{OTHER:Stolbunov10} is, using a DDH-like assumption, to compute the ciphertext from $r \star E_0, r \star E_x$, with $E_x = x \star E_0$ the public key and $x$ the secret key.
+Next, to use the randomness in $r \star E_x$ an \textit{entropy smoothing} hash function $H_k : \mathcal{E} \to \{0, 1\}^\mu$ is used, whose security requirement is that, given a random key $k \in K$, input $x$ and image $y \in \{0, 1\}^\mu$, no $\ppt$ adversary can distinguish $(k, H_k(x))$ from $(k, y)$.
+\EG{Add example of ES function}
+
+%Notice that we do not require collision resistance. Hence an example of entropy-smoothing function family is, assuming $\mathcal{E} \subseteq \{0, 1\}^\nu$, the set of all linear maps in $\F_2^{\mu, \nu}$.
+
+\begin{figure}[htb]
+\centering
+\begin{pcvstack}[center, space = 6pt]
+\begin{pchstack}[center, space=12pt]
+	\algorithm{
+		$\cd{Setup}:$
+		}
+		{
+			$k \rgets K$ key of the ES hash
+				\\
+			$x \rgets \G$
+				\\
+			$\pk = E_x \gets x \star E_0, \; \sk = x$
+				\\
+			Return $(\pk, \sk)$
+		}
+	\algorithm{
+		$\cd{Enc}(m, \pk):$
+		}
+		{
+			Sample $r \rgets \G$
+				\\
+			$c \gets (r \star E_0, H_k(r \star E_x) \oplus m)$
+				\\
+			Return $c$
+		}
+\end{pchstack}
+\begin{pchstack}[center]
+	\algorithm{
+		$\cd{Dec}(c, \sk):$
+		}
+		{
+			Sample $c = (E_r, \hat{c})$ with $E_r \in \mathcal{E}$ and $\hat{c} \in \{0, 1\}^\mu$
+				\\
+			Return $m \gets \hat{c} \oplus H_k(x \star E_r)$
+		}
+\end{pchstack}
+\end{pcvstack}
+\label{prot:Stolbunov10}
+\caption{\cite{OTHER:Stolbunov10} encryption for HHS, with message space $\{0, 1\}^\mu$}
+\end{figure}
+
+Correctness hold as we assumed $\G$ is commutative, since $r \star E_x = (r \cdot x) \star E_0 = (x \cdot r) \star E_0 = x \star E_r$. 
+In particular their hash value is the same and so
+\[
+	\hat{c} \oplus H_k(x \star E_r)
+		\; = \;
+	m \oplus H_k(r \star E_x) \oplus H_k(x \star E_r)
+		\; = \;
+	m.
+\]
+
+Security holds under a DDH-like assumption over HHS \EG{check for a name, the proof goes through two hybrids, the first changes $r \star E_x$ with $E_z$ random and the second one replace $H_k(E_z)$ random with randomness. Then it becomes one time pad.}
