@@ -1,6 +1,6 @@
 \subsection{Stolbunov from Group Actions}
 
-In the context of hard homogeneous space, a generalization of cryptographic groups which models a group action on a set (without assuming the set is also a group), the first encryption scheme was proposed by \cite{OTHER:Stolbunov10}.
+In the context of hard homogeneous space, a generalization of cryptographic groups which models a group action on a set (without assuming the set is also a group), the first encryption scheme was proposed by \cite{OTHER:Stolbunov10*}.
 First let us recall the notation.
 Given a group $\G$ and a set $\mathcal{E}$ the actions is denoted as
 \[
@@ -10,7 +10,7 @@ with the assumption that $\mathcal{E}$ is a single orbit, that is $\mathcal{E} =
 The following scheme assumes $\G$ to be commutative and the action faithful, that is each $E \in \mathcal{E}$ admit one and only one $a \in \G$ such that $a \star E_0 = E$.
 
 The main obstacle to instantiate ElGamal encryption over HHS is that $(g^r, h^r \cdot m)$ with $m$ group element cannot be computed as we do not have a group operation.
-The solution in \cite{OTHER:Stolbunov10} is, using a DDH-like assumption, to compute the ciphertext from $r \star E_0, r \star E_x$, with $E_x = x \star E_0$ the public key and $x$ the secret key.
+The solution in \cite{OTHER:Stolbunov10*} is, using a DDH-like assumption, to compute the ciphertext from $r \star E_0, r \star E_x$, with $E_x = x \star E_0$ the public key and $x$ the secret key.
 Next, to use the randomness in $r \star E_x$ an \textit{entropy smoothing} hash function $H_k : \mathcal{E} \to \{0, 1\}^\mu$ is used, whose security requirement is that, given a random key $k \in K$, input $x$ and image $y \in \{0, 1\}^\mu$, no $\ppt$ adversary can distinguish $(k, H_k(x))$ from $(k, y)$.
 \EG{Add example of ES function}
 
