@@ -18,12 +18,15 @@
 \fi
 
 %% Main Body
+
+%===============================================================================
+% PART 1: CRYPTOGRAPHIC PRIMITIVES
+\part{Cryptographic Primitives}
 \chapter{Computational Assumptions}
 
 \chapter{Pseudo Random Function and Permutation}
 	\section{Pseudo Random Functions}
-	\EG{From DDH - Naor Reingold \cite{FOCS:NaoRei97}}
-	\EG{From Factoring?}
+	\input{chapters/PRF/NR97.tex}
 	
 	\section{Pseudo Random Permutation}
 	\EG{Feistel Rounds \cite{SIAMJC:LubRac88*}}
@@ -32,9 +35,10 @@
 	\section{Chameleon Hash}
 	\input{chapters/Hashes/HW97.tex}
 
-\chapter{Asymmetric Encryption}
+\chapter{Public Key Encryption}
 	\section{Security against Chosen Plaintext Attack}
 	\input{chapters/AsyEnc/Sto10.tex}
+	\input{chapters/AsyEnc/SW13.tex}
 
 	\section{Security against Chosen Ciphertext Attack}
 	\input{chapters/AsyEnc/CS98.tex}
@@ -45,7 +49,13 @@
 \chapter{Signatures}
 	\section{Digital Signatures Schemes}
 	\input{chapters/DigSgn/HW09.tex}
-
+	
+	\section{Unique Signatures (VUF)}
+	
+	\section{Verifiable Random Functions (VRF)}
+	\input{chapters/DigSgn/vrf_roadmap.tex}
+	
+	
 \chapter{Functional Encryption}
 	\section{Identity Based Encryption}
 	\input{chapters/FunEnc/BF01.tex}
@@ -58,6 +68,12 @@
 	% Function-Hiding Inner Product FE
 	\input{chapters/FunEnc/Lin17a.tex}
 	% Slotted Inner Product FE
+	
+%===============================================================================
+% PART 2: Distributed systems and protocols
+\part{Distributed Systems and Protocols}
+\chapter{Consensus Protocols}
+	\input{chapters/Consen/references.tex}
 
 
 %% Bibliography
