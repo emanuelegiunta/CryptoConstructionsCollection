@@ -1,0 +1,89 @@
+\subsection{Sahai-Waters from iO}
+
+An important question on the path to render iO the "central hub" of modern cryptography is under which assumptions it implies fundamental primitives such as public-key encryption.
+The first answer was provided by \cite{STOC:SahWat14}.
+Their idea is to start with a simple secret key encryption from PRF $f$, which encrypts $m$ as $(r, f_k(r) \oplus m)$ with $r$ a random nonce.
+Then this scheme is compiled into a public-key one.
+The ingredients required for such transformation are
+\begin{itemize}
+	\item A puncturable PRF ($\cd{PRF.Gen}, \cd{PRF.Puncture}, \cd{PRF.Eval}$) \EG{cite}
+	\item A pseudo-random generator $g : \{0,1\}^\secp \to \{0,1\}^{2\secp}$
+	\item Indistinguishability obfuscation $\io$
+\end{itemize}
+Given the above $f_k(\cdot)$ is replaced with $\cd{PRF.Eval}(k, \cdot)$.
+The randomness $r$ instead is sampled through $g(s)$ with short seed $s$, which creates a (relatively sparse) subset of "obtainable ciphertexts" in the space of all "valid" ones.
+With these modifications, the public key of the resulting scheme is set as the obfuscation of the circuit evaluating the secret-key encryption.
+\[
+	C_k(m, s) = \left(
+		g(s),
+			\,
+		\cd{PRF.Eval}(k, g(s)) \oplus m
+	\right).
+\]
+The full scheme is described in figure \ref{prot:SahWat14:pke_from_io}.
+
+\begin{figure}[htb]
+	\centering
+	\begin{pchstack}[center, space=12pt]
+	\algorithm{
+		$\cd{Gen}(1^\secp):$
+		}
+		{
+			Sample $k \rgets \cd{PRF.Gen}(1^\secp)$
+				\\
+			Obfuscate $\tilde{C} \gets \io(C_k)$
+				\\
+			$\pk \gets \tilde{C}, \, \sk \gets k$
+				\\
+			\textbf{Return} $(\pk, \sk)$
+		}
+	\algorithm{
+		$\cd{Enc}(\pk, m):$
+		}
+		{
+			Sample a PRG seed $s$
+				\\
+			$c \gets \tilde{C}(m, s)$
+				\\
+			\textbf{Return} $c$
+		}
+	\end{pchstack}
+	\begin{pchstack}[center, space=12pt]
+	\algorithm{
+		$\cd{Dec}(\sk, c):$
+		}
+		{
+			Parse $c = (c_1, c_2)$
+				\\
+			\textbf{Return} $\cd{PRF.Eval}(k, c_1) \oplus c_2$
+		}
+	\end{pchstack}
+	\label{prot:SahWat14:pke_from_io}
+	\caption{Circuit evaluating the modified encryption scheme.}
+\end{figure}
+
+\begin{proposition}
+	\label{prop:SahWat98}
+	If $(\cd{PRF.Gen}, \cd{PRF.Puncture}, \cd{PRF.Eval})$ is a secure puncturable PRF, $g$ is a PRG and $\io$ is an indistinguishability obfuscator for P/poly, then the scheme in Figure~\ref{prot:SahWat14:pke_from_io} is IND-CPA secure.
+\end{proposition}
+\begin{proof}
+	The proof follows from a sequence of four hybrid games, where we call $m_0, m_1$ the challenge messages chosen by the adversary and $b$ the bit sampled by the challenger.
+	\begin{itemize}
+		\item[$\cd{H}_0$:] The real IND-CPA game with $c = (g(s), \cd{PRF.Eval}(k, g(s)) \oplus m_b)$.
+		
+		\item[$\cd{H}_1$:] As $\cd{H}_0$ but $r^\ast$ is initially sampled and the challenge ciphertext is set as $c = (r^\ast, \cd{PRF.Eval}(k, r^\ast) \oplus m_b)$.
+		
+		\item[$\cd{H}_2$:] As $\cd{H}_1$ but $k^\ast \gets \cd{PRF.Puncture}(k, \{r^\ast\})$ and $\tilde{C} = \io(C_{k^\ast})$.
+		
+		\item[$\cd{H}_3$:] As $\cd{H}_2$ but $c = (r^\ast, z^\ast)$ with $z^\ast$ uniformly random.
+	\end{itemize}
+	At a high level $\cd{H}_0 \approx \cd{H}_1$ based on the PRG security replacing $g(s)$ with $r^\ast$.
+	$\cd{H}_1 \approx \cd{H}_2$ uses the fact that, since $r^\ast$ is sampled uniformly over $\{0,1\}^{2\secp}$, the probability that $r^\ast \in \Im g$ is $2^{-\secp}$.
+	Thus, conditioning on $r^\ast \notin \Im g$ we have that $C_k$ and $C_{k^\ast}$ are functionally equivalent.
+	In particular the hybrid are indistinguishable due to the security of the obfuscator.
+	Finally, from the pseudo-randomness of the PRF, as $k^\ast$ is punctured in $r^\ast$, the value $\cd{PRF.Eval}(k^\ast, r^\ast)$ is computationally indistinguishable from true randomness form the adversary's view.
+	In particular so is $\cd{PRF.Eval}(k^\ast, r^\ast) \oplus m_b$.
+\end{proof}
+
+
+
