@@ -1,0 +1,126 @@
+%!TeX root = ../../ccc_main.tex
+%!TeX spellcheck = en_GB
+
+\subsection{Naor-Reingold PRF}
+The first PRF based on DDH was proposed by Naor and Reingold in \cite{FOCS:NaoRei97}.
+The key features of this function family are that it is computable in $\cd{TC}^0$ with preprocessing, as it only involves a subset product, it is algebraic, i.e.\ it can be instantiated in the Generic Group Model, and admits efficient sigma protocols to show the correct evaluation under a committed key of a publicly known input, something used in Bellare-Goldwasser \cite{C:BelGol89} signatures.
+Moreover its security proof is \textit{tight}, meaning that is does not depend on the number of queries performed by the adversary.
+In the following $f_k: \{0, 1\}^n \to \G$ and $k \in \F_q^{n+1}$ with $q$ being the prime order of $\G$.
+In order to have domain $\{0, 1\}^m$ standard techniques using unique group element representation and universal hashing can be applied.
+
+\begin{figure}[htb]
+\centering
+\begin{pcarray}{ll}
+	\algorithm{
+		$\cd{Setup}(1^\secp):$
+		}
+		{
+			$(a_0, a_1, \ldots, a_n) \rgets \F_q^{n+1}$
+				\\
+			Return $(a_0, a_1, \ldots, a_n)$
+		}
+			&
+	\algorithm{
+		$f_k(x):$
+		}
+		{
+			Parse $x = (b_1, \ldots, b_n)$
+				\\
+			Return $\gexp{}{a_0 \cdot \prod_{b_i = 1} a_{b_i}}$
+		}
+\end{pcarray}
+\caption{PRF from DDH in \cite{FOCS:NaoRei97} with $f_k: \{0, 1\}^n \to \G$.}
+\label{prot:NaoRei88:prf_from_ddh}
+\end{figure}
+
+At the core of its tight security proof lies a reduction of $\ddh$ to $\ddh_n$ which does not depend on $n$. Formally for any $\ppt$ $\mathcal{D}$ its advantage in the $\ddh_n$ game is defined as
+\[
+	\adv{\mathcal{D}}
+		\; = \;
+	\left|
+		\prob{\mathcal{D}(\gexp{}{\vc{u}}, \gexp{}{\vc{v}})}
+			-
+		\prob{\mathcal{D}(\gexp{}{\vc{u}}, \gexp{}{\alpha \vc{u}})}
+	\right|
+\]
+where $\vc{u}$ and $\vc{v}$ are random vectors in $\F_q^n$.
+
+\begin{lemma}
+	For any $\mathcal{A}$ playing against $\ddh_n$ there exists $\mathcal{B}$ playing against $\ddh$ such that $\adv{\mathcal{B}} = \adv{\mathcal{A}}$.
+\end{lemma}
+\begin{proof}
+	Calling $\gexp{}{a}$, $\gexp{}{b}$, $\gexp{}{c}$ the elements received by $\mathcal{B}$, the key idea is that this tuple is Diffie-Hellman if and only if the matrix
+	\[
+		M 
+			\; = \;
+		\left(
+		\begin{matrix}
+			1 & a \\
+			b & c 
+		\end{matrix}
+		\right)
+	\]
+	has rank $1$. With this idea in mind $\mathcal{B}$ samples $\vc{x}, \vc{y} \rgets \F_q^n$ and computes in the exponent
+	\[
+		(\vc{u}, \vc{v}) = M \cdot (\vc{x}, \vc{y})
+	\]
+	where $(\vc{x}, \vc{y})$ is a column vector.
+	If $M$ has rank $1$, $\vc{u}, \vc{v}$ will be linearly dependent, and so $\mathcal{B}$ simulated $\ddh[1]_n$. 
+	Otherwise $M$ has rank $2$ and in particular $\vc{u}, \vc{v}$ are uniformly and independently distributed vectors, meaning $\mathcal{B}$ perfectly simulated $\ddh[0]_n$.
+\end{proof}
+
+\begin{proposition}
+	\label{prop:NaoRei97}
+	The function defined in Fig.~\ref{prot:NaoRei88:prf_from_ddh} is a PRF under the assumption that $\ddh$ is hard.
+	More specifically, for any $\mathcal{A}$ breaking the PRF security, there exists $\mathcal{B}$ breaking $\ddh$ with advantage
+	\[
+		\adv{\mathcal{B}} = \frac{1}{n} \cdot \adv{\mathcal{A}}.
+	\]
+\end{proposition}
+\begin{proof}[Proof Sketch]
+	The proof consists of $n+1$ hybrid game, where in $\cd{G}_0$ $\mathcal{A}$ access $f_k(\emptyentry)$, whereas in $\cd{G}_n$ it access a fully random function.
+	Game $\cd{G}_i$ is defined through a random $g: \{0, 1\}^i \to \F_q$. 
+	Each query input $x$ is parsed as $x = \vc{b}^\ast || \vc{b}$ with $\vc{b}^\ast \in \{0, 1\}^i$ and $\vc{b} \in \{0, 1\}^{n-i}$ and is replied with
+	\[
+		\gexp{}{g(\vc{b}) \cdot \prod\nolimits_{b_i = 1} a_i}.
+	\]
+	Next we show that a $\ppt$ adversary $\mathcal{D}$ distinguishing $\cd{G}_{i-1}$ from $\cd{G}_i$ making $Q$ queries can be used to break $\ddh_{Q}$.
+	The key idea is that on input $\gexp{}{\vc{u}}$ and $\gexp{}{\vc{v}}$ will lazily emulate $g$ by either using for the $j$-th query $\gexp{}{u_j}$ or $\gexp{}{v_j}$ as a base group element (the former if $b_i = 0$ and the latter if $b_i = 1$).
+	If the same prefix $\vc{b}^\ast$ is queried more than once, the same $\gexp{}{u_j}$, $\gexp{}{v_j}$ pair is used.
+	Finally, it raises the chosen base elements correctly according to the remaining bits $b_{i+1}, \ldots, b_n$. 
+	A reduction is described in Figure~\ref{prot:NaoRei97:DDH_reduction}
+	
+	\begin{figure}[htb]
+	\centering
+	\algorithm{$\mathcal{B}(\gexp{}{\vc{u}}, \gexp{}{\vc{v}})$}{
+		Parse $\gexp{}{\vc{u}} = (\gexp{}{u_1}, \ldots, \gexp{}{u_Q})$ and $\gexp{}{\vc{v}} = (\gexp{}{v_1}, \ldots, \gexp{}{v_Q})$
+			\\
+		Sample $a_{i+1}, \ldots, a_n \rgets \F_q$
+			\\
+		Maintain an initially empty ordered set $L = \varnothing$
+			\\
+		Run $\mathcal{A}$
+			\\
+		\textbf{When} $\mathcal{A}$ queries $x = (\vc{b}^\ast, \vc{b})$:
+			\\
+		\t Add $\vc{b}^\ast$ in $L$ and get the index $j$ of $\vc{b}^\ast$ in $L$
+			\\
+		\t \textbf{If} $b_i = 0$:
+			\\
+		\t\t Send $\gexp{}{u_j \cdot \prod_{b_\ell = 1}^{\ell > i} a_\ell}$ to $\mathcal{D}$
+			\\
+		\t \textbf{If} $b_i = 0$:
+			\\
+		\t\t Send $\gexp{}{v_j \cdot \prod_{b_\ell = 1}^{\ell > i} a_\ell}$ to $\mathcal{D}$
+			\\
+		\textbf{When} $\mathcal{D} \to b$
+			\\
+		\t Return $b$
+	}
+	\label{prot:NaoRei97:DDH_reduction}
+	\caption{Algorithm $\mathcal{B}$ reducing a distinguisher for $\cd{G}_{i-1}$ and $\cd{G}_i$ to $\ddh_n$}
+	\end{figure}
+	
+	It is easy to see that if $\vc{v}$ is a multiple of $\vc{u}$, $\mathcal{B}$ simulates $\cd{G}_{i-1}$ whereas, if $\vc{v}$ is random it simulates $\cd{G}_i$.
+	The thesis follows observing that the hybrid argument is applied $n$ times.
+\end{proof}
