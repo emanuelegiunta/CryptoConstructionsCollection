@@ -48,14 +48,14 @@ Next, to use the randomness in $r \star E_x$ an \textit{entropy smoothing} hash 
 		$\cd{Dec}(c, \sk):$
 		}
 		{
-			Sample $c = (E_r, \hat{c})$ with $E_r \in \mathcal{E}$ and $\hat{c} \in \{0, 1\}^\mu$
+			Parse $c = (E_r, \hat{c})$ with $E_r \in \mathcal{E}$ and $\hat{c} \in \{0, 1\}^\mu$
 				\\
 			Return $m \gets \hat{c} \oplus H_k(x \star E_r)$
 		}
 \end{pchstack}
 \end{pcvstack}
 \label{prot:Stolbunov10}
-\caption{\cite{OTHER:Stolbunov10} encryption for HHS, with message space $\{0, 1\}^\mu$}
+\caption{\cite{OTHER:Stolbunov10*} encryption for HHS, with message space $\{0, 1\}^\mu$}
 \end{figure}
 
 Correctness hold as we assumed $\G$ is commutative, since $r \star E_x = (r \cdot x) \star E_0 = (x \cdot r) \star E_0 = x \star E_r$. 
