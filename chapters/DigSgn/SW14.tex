@@ -1,0 +1,82 @@
+\subsection{Sahai-Water Short Signature from iO}
+An fundamental question in the study of digital signatures regards the efficiency gap between their secret-key counterpart.
+In particular MAC can be as short as a single PRF output.
+The first construction showing that Digital signature can achieve the same length, at the price of slower verification time, was presented in \cite{STOC:SahWat14}.
+Their construction however achieves only \textit{selective security}, namely, the adversary must declare the message $m^\ast$ he intends to produce a forgery of before the public parameters are generated.
+
+The construction is based on a puncturable PRF $(\cd{PRF.Gen}, \allowbreak \cd{PRF.Eval}, \allowbreak \cd{PRF.Puncture})$ (we denote $F_k = \cd{PRF.Eval}$), a one-way function $f$ and indistinguishability obfuscation $\io$.
+The idea is to lift the PRF-as-MAC \EG{cite?} construction obfuscating the verification procedure.
+Puncturing the PRF on the message chosen by the adversary ideally allows to argue that no information on a signature at that point is given to the adversary.
+However \textit{some} information must be embedded in the circuit, or else there would be no valid signature for $m^\ast$ after puncturing, which renders the punctured program functionally different from the correct one.
+
+To solve the issue "degraded" (but sufficient for authentication) information on $F_k(m^\ast)$ is embedded, which allow for verification but does not allow to fully retrieve $F_k(m^\ast)$.
+This is simply $f(F_k(m^\ast))$.
+The verification circuit is then defined as
+\[
+	C_k(m, \sigma)
+		\; \coloneqq \;
+	f(\sigma) == f(F_k(m)).
+\]
+The scheme is described in Figure~\ref{prot:SahWat14:short_signature_from_io}.
+
+\begin{figure}[htb]
+	\centering
+	\begin{pchstack}[center, space=10pt]
+	\algorithm{
+		$\cd{Gen}(1^\secp):$
+		}
+		{
+			$k \rgets \cd{PRF.Gen}(1^\secp)$
+				\\
+			$\tilde{C} \rgets \io(C_k)$
+				\\
+			\textbf{Return} $(\vk, \sk) = (\tilde{C}, k)$
+		}
+	\algorithm{
+		$\cd{Sign}(\sk, m):$
+		}
+		{
+			\textbf{Return} $F_k(m)$
+		}
+	\algorithm{
+		$\cd{Vfy}(\vk, \sigma):$
+		}
+		{
+			Parse $\vk = \tilde{C}$
+				\\
+			\textbf{Return} $\tilde{C}(m, \sigma)$	
+		}
+	\end{pchstack}
+	\label{prot:SahWat14:short_signature_from_io}
+	\caption{Short Signatures from iO presented in \cite{STOC:SahWat14}.}
+\end{figure}
+
+\begin{theorem}
+	\label{theo:SahWat14:short_signatures_from_io}
+	If $(\cd{PRF.Gen}, \cd{PRF.Eval}, \cd{PRF.Puncture})$ is a puncturable PRF, $f$ a one-way function, and $\io$ a secure obfuscator for P/poly, then the signature scheme in Figure~\ref{prot:SahWat14:short_signature_from_io} is selectively unforgeable.
+\end{theorem}
+\begin{proof}
+	The proof goes through three hybrids. First let $C^\ast_{k^\ast, m^\ast, z^\ast}$ be the circuit returning
+	\[
+	C^\ast_{k^\ast, m^\ast, z^\ast}(m, \sigma)
+		\; = \;
+	\begin{cases}
+		f(\sigma) == z^\ast & \text{If } m^\ast = m
+			\\
+		f(\sigma) == f(F_{k^\ast}(m)) & \text{If } m^\ast \neq m
+	\end{cases}.
+	\]
+	Given the above we define the three hybrids:
+	\begin{itemize}
+	\item{$\cd{H}_0$:} The real unforgeability game.
+	
+	\item{$\cd{H}_1$:} As $\cd{H}_0$, but $k^\ast$ is computed as $\cd{PRF.Puncture}(k, \{m^\ast\})$, $z^\ast = f(F_k(m^\ast))$ and $\tilde{C}$ is the obfuscation of $C^\ast_{k^\ast, m^\ast, z^\ast}$.
+	
+	\item{$\cd{H}_2$:} As $\cd{H}_1$, but $z^\ast$ is computed as $f(r^\ast)$ with $r^\ast$ a random value.
+	\end{itemize}
+	
+	Intuitively, the first two hybrids are indistinguishable as $C_k$ and $C^\ast_{k^\ast, m^\ast, z^\ast}$ are functionally equivalent.
+	$\cd{H}_1 \approx \cd{H}_2$ follows as $F_k(m^\ast)$ is indistinguishable from random given the adversary's view, which is now a function of the \textit{punctured} key.
+	Finally, unforgeability in $\cd{H}_2$ follows from the hardness of the OWF.
+	Indeed any forgery $\sigma$ for $m^\ast$, is a valid preimage for $f(r^\ast)$.
+\end{proof}
