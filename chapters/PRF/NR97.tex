@@ -2,7 +2,7 @@
 %!TeX spellcheck = en_GB
 
 \subsection{Naor-Reingold PRF}
-The first PRF based on DDH was proposed by Naor and Reingold in \cite{FOCS:NaoRei97}.
+The first PRF based on DDH was proposed by Naor and Reingold in \cite{FOCS:NaoRei97}, building on \cite{FOCS:GolGolMic84}.
 The key features of this function family are that it is computable in $\cd{TC}^0$ with preprocessing, as it only involves a subset product, it is algebraic, i.e.\ it can be instantiated in the Generic Group Model, and admits efficient sigma protocols to show the correct evaluation under a committed key of a publicly known input, something used in Bellare-Goldwasser \cite{C:BelGol89} signatures.
 Moreover its security proof is \textit{tight}, meaning that is does not depend on the number of queries performed by the adversary.
 In the following $f_k: \{0, 1\}^n \to \G$ and $k \in \F_q^{n+1}$ with $q$ being the prime order of $\G$.
