@@ -1,0 +1,66 @@
+\subsection{From Verifiable Unpredictable Functions}
+
+The original paper \cite{FOCS:MicRabVad99} introducing the notion of VRF, further presented a general construction from Verifiable Unpredictable Functions \EG{cite}.
+The result is broken into three steps: first a $1$-bit selectively secure\footnote{Such that the challenge input is queried before generating the public parameters.} VRF is built using the Goldreich-Levin hardcore predicate \cite{STOC:GolLev89}.
+Next, through complexity leveraging we can obtain a VRF with super-polynomial (but possibly not exponential) input and output space.
+Finally, large input space is achieved through a tree-like construction.
+
+Let the starting VUF have output space in $\{0,1\}^n$.
+The idea is to generate $(\vk, \sk)$ the VUF parameters along with a random string $r \in \{0,1\}^n$ and set the VRF output to be $y^\trs r$ with $y$ the VUF output.
+The construction is presented in Figure~\ref{prot:MRV99:sel_sec_vrf_from_vuf}
+
+\begin{figure}[htb]
+	\centering
+	\begin{pcvstack}[center, space=10pt]
+	\begin{pchstack}[center, space=10pt]
+	\algorithm{
+		$\cd{VRF.Gen}(1^\secp)$
+		}
+		{
+			$\vk, \sk \rgets \cd{VUF.Gen}(1^\secp)$
+				\\
+			$r \rgets \{0,1\}^n$
+				\\
+			$\vk^\ast \gets (\vk, r), \; \sk^\ast \gets \sk$
+				\\
+			\textbf{Return} $((\vk, r), \sk)$
+		}
+	\algorithm{
+		$\cd{VRF.Eval}(\sk, x)$
+		}
+		{
+			$y \gets \cd{VUF.Eval}(\sk, x)$
+				\\
+			$y^\ast \gets y^\trs r$
+				\\
+			$\pi^\ast \gets y$
+				\\
+			\textbf{Return} $(y^\ast, \pi^\ast)$	
+		}
+	\end{pchstack}
+	\begin{pchstack}
+	\algorithm{
+		$\cd{VRF.Vfy}(\vk^\ast, x, y^\ast, \pi^\ast)$
+		}
+		{
+			Parse $\vk^\ast = (\vk, r)$
+				\\
+			\textbf{Return} $1$ if:
+				\\
+			\t $y^\ast = (\pi^\ast)^\trs r$
+				\\
+			\t $1 = \cd{VUF.Vfy}(\vk, x, \pi^\ast)$
+		}
+	\end{pchstack}
+	\end{pcvstack}
+	\label{prot:MRV99:sel_sec_vrf_from_vuf}
+	\caption{VUF to selectively secure VRF compiler in \cite{FOCS:MicRabVad99}.}
+\end{figure}
+
+\begin{theorem}
+	\label{theo:MRV99:vuf_to_sel_secure_vrf}
+	Let $(\cd{VUF.Gen}, \cd{VUF.Eval}, \cd{VUF.Vfy})$ be a VUF. Then the construction in Figure~\ref{prot:MRV99:sel_sec_vrf_from_vuf} is a selectively secure VRF with the same input space and output space $\{0,1\}$.
+\end{theorem}
+\begin{proof}
+	\EG{TODO}
+\end{proof}

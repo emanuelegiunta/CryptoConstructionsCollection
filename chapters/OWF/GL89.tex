@@ -1,0 +1,111 @@
+\subsection{Goldreich-Levin Predicate}
+Following the previous works of \cite{FOCS:BluMic82, FOCS:Yao82a} which provided hard-core predicate for specific (classes of) OWFs, \cite{STOC:GolLev89} showed how to obtain them from any OWF.
+This is done first extending a given OWF $f : \{0,1\}^n \to Y$, mapping $(x, r) \mapsto (f(x), r)$ where $r \in \{0,1\}^n$ and later showing that $x^\trs r$ is an hard-core predicate for this function\footnote{We denote $x^\trs r$ the inner-product in $\F_2^n$. In bit operations $x^\trs r = \bigoplus_{i = 1}^n (x_i \wedge r)$.}.
+Their result lies on the idea that inverting "often" the later function means learning "many" projections of $x$.
+
+As a warm-up, if an adversary $\mathcal{A}$ could guess the predicate correctly always, then $n$ invocations of $\mathcal{A}(f(x), r_j)$ for $r_1, \ldots, r_n$ being linearly independent vectors in $\F_2^n$ would suffice to reconstruct $x$.
+The challenge lies when the adversary only has inverse polynomial advantage.
+This can be amplified through majority vote techniques exploiting three facts:
+\begin{enumerate}
+	\item Given $f(x)$, a vector $u \in \F_2^n$ and $b_j = x^\trs r_j$ for $r_1, \ldots, r_m$ pair-wise independent, we can get $m$ pair-wise independent guesses on $x^\trs u$ by computing $b'_j = \mathcal{A}(f(x), u + r_j) - b_j$.
+	
+	\item Given $k$ correct values for $a_j = x^\trs s_j$ for $r_1, \ldots, r_k$ independent vectors, those can be expanded into $2^k - 1$ pair-wise independent values $b_i = x^\trs r_i$ trough subset sums (excluding the empty set).
+	
+	\item Pair-wise independence (on large sample) is sufficient to use a Chebyshev bound on majority voting.
+\end{enumerate}
+The proving strategy is then to define $\mathcal{B}(y)$ attempting to invert $f(x) = y$. Initially it guesses\footnote{The actual algorithm brute-force search those values.} $k > \log m$ predicates values $a_j = x^\trs s_j$, for uniformly sampled $s_1, \ldots, s_k$.
+Then it expand those to $m \approx 2^k - 1$ values $b_j = x^\trs r_j$ with $r_j$ being pair-wise independent.
+Finally, it invokes $\mathcal{A}(f(x), e_i + r_j) - b_j$ to obtain $m$ guesses of the bit $x_i = x^\trs e_i$, where $e_i$ is the vector with all entries equal to zero and the $i$-th equal to $1$.
+Taking a majority vote for each bit, it obtain a candidate $x^\ast$ whose correctness can be checked testing $f(x^\ast) = y$.
+
+\begin{lemma}
+	Given $X_1, \ldots, X_m$ pairwise-independent random variables with Bernoulli distribution\footnote{I.e. $\prob{X_i = 1} = 1/2 + \varepsilon$ and $\prob{X_i = 0} = 1/2 - \varepsilon$.} $\mathrm{B}(1/2 + \varepsilon)$, then calling $X = X_1 + \ldots + X_n$,
+	\[
+		\prob{
+			X \leq \frac{m}{2}
+		}
+			\; \leq \;
+		\frac{1}{4m \varepsilon^2}.
+	\]
+\end{lemma}
+\begin{proof}
+	\label{lemm:GolLev89:majority_voting}
+	Calling $p = 1/2 + \varepsilon$, by linearity $\mathbb{E}(X) = mp$ and $\mathrm{Var}(X) = m p(p - 1) \leq m/4$, which can be shown as $\mathbb{E}(X_i X_j) = p^2$ from pair-wise independence (with $i \neq j$).
+	Using a Chebyshev bound then
+	\[
+		\prob{X \leq \frac{m}{2}}
+			\; \leq \;
+		\prob{\left| X - pm \right| \geq  \varepsilon m }
+			\; \leq \;
+		\frac{m/4}{\varepsilon^2 m^2}
+			\; = \;
+		\frac{1}{4 m \varepsilon^2}.
+	\]
+\end{proof}
+
+\begin{theorem}
+	\label{theo:GolLev89}
+	Let $f : \{0,1\}^n \to \{0,1\}^\ast$ be a OWF.
+	Then $F : \{0,1\}^{2n} \to \{0,1\}^\ast$ such that $F(x,r) = (f(x), r)$ is a OWF and $h : \{0,1\}^{2n} \to \{0,1\}$ such that $h(x,r) = x^\trs r$ is an hard-core predicate for $F$.
+\end{theorem}
+\begin{proof}
+	Having given the informal overview we focus on the proof. The algorithm is described in Figure~\ref{prot:GolLev84}.
+	
+	\begin{figure}[htb]
+	\centering
+	\algorithm{$\mathcal{B}(y):$}{
+		Sample $s_1, \ldots, s_k \rgets \{0,1\}^n$ with $k = \log m + 1$
+			\\
+		\textbf{For} $a_1, \ldots, a_k \in \{0,1\}$:
+			\\
+		\t Compute $b_1, \ldots, b_m$ and $r_1, \ldots, r_m$ via non-empty subset sums
+			\\
+		\t \textbf{For} $i \in \{1, \ldots, n\}$:
+			\\
+		\t\t Compute $x^\ast_{i,j} \gets \mathcal{A}(y, e_i + r_j) - b_j$
+			\\
+		\t\t Set $x^\ast_i$ the majority bit among $x^\ast_{i,1}, \ldots, x^\ast_{i, m}$
+			\\
+		\t Reconstruct $x^\ast \gets (x^\ast_1, \ldots, x^\ast_n)$
+			\\
+		\t \textbf{If} $f(x^\ast) = y$: \textbf{Return} $x^\ast$
+			\\
+		\textbf{Return} $\perp$
+	}
+	\label{prot:GolLev84}
+	\caption{$\mathcal{B}$ using $\mathcal{A}$ for the Goldreich-Levin predicate to invert $f$.}
+	\end{figure}
+	
+	Assume $\mathcal{A}$ guesses the given predicate with inverse-polynomial advantage $\varepsilon$, that is, for a random $x$ and $r$, $\prob{\mathcal{A}(f(x), r) \to x^\trs r} \geq 1/2 + \varepsilon$.
+	Calling $G = \{x_0 \in \{0,1\}^n \: : \: \prob{\mathcal{A}(f(x_0), r)} \geq 1/2 + \varepsilon/2\}$, then $\prob{x \in G} \geq \varepsilon/2$.
+	
+	Next we study the iteration of the outer loop in which $\mathcal{B}$ guesses $a_1, \ldots, a_k$ correctly.
+	In this case we have that $x_{i,j}^\ast$ are equally distributed, pair-wise independent as $r_j$ are and, as $b_j = x^\trs r_j$,
+	\begin{align*}
+		\prob{x_i = x^\ast_{i,j}}
+			\; &= \;
+		\prob{x^\trs e_i = \mathcal{A}(f(x), e_i + r_j) - b_j}
+			\; \\ &= \;
+		\prob{x^\trs (e_i + r_j) = \mathcal{A}(f(x), e_i + r_j)}
+			\; \geq \;
+		\frac{1}{2} + \frac{\varepsilon}{2}.
+	\end{align*}
+	From Lemma~\ref{lemm:GolLev89:majority_voting} we thus get that
+	\[
+		\prob{x_i \neq x^\ast_i}
+			\; \leq \;
+		\frac{1}{4m \varepsilon^2}
+			\quad \ra \quad
+		\prob{x \neq (x^\ast_1, \ldots, x^\ast_n)}
+			\; \leq \;
+		\frac{n}{4m \varepsilon^2}
+	\]
+	which, up to fixing $m = n/(2\varepsilon^2)$ that is polynomially bounded, can be set to be smaller that $1/2$.
+	As we conditioned on $x \in G$, which occurs with probability $\varepsilon/2$, we conclude that $\mathcal{A}$ inverts $f$ with probability $\varepsilon/4$, which is impossible.
+	
+	Note that for very small $\varepsilon$ though $m$ may become super-polynomial.
+	This is solved as follows:
+	Assume toward contradiction there exists $\mathcal{A}$ such that its advantage $\varepsilon$ is \textit{infinitely often}\footnote{A predicate $p(\secp)$ hold infinitely often if $\forall \secp_0 \left( \exists \mu_0 \left( \secp_0 \leq \mu_0 \wedge  p(\mu_0) \right) \right)$.} larger than $\secp^{-c}$ for a constant $c$.
+	Then we can define a non-uniform adversary $\mathcal{C}(1^\secp, y)$ for the OWF which aborts if $\varepsilon(\secp) < \secp^{-c}$ and runs $\mathcal{B}$ otherwise.
+	When $\mathcal{B}$ is executed it runs in polynomial time in $\secp$ as $m = n/(2\varepsilon^2) \leq n \cdot \secp^{2c}$ in this case. Moreover $\mathcal{C}$'s advantage is $\varepsilon/4 \geq 1/4 \cdot \secp^{-c}$ infinitely often, which is a contradiction.
+\end{proof}
